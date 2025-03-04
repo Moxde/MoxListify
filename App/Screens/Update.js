@@ -12,7 +12,7 @@ function Update() {
     useEffect(() => {
         // Lokale App-Version abrufen
         const fetchAppVersion = async () => {
-            const version = '1.0.2'; // Hier später die echte Version abrufen
+            const version = '1.0.3'; // Hier später die echte Version abrufen
             setAppVersion(version);
         };
 
@@ -39,7 +39,7 @@ function Update() {
 
     const handleDownload = async () => {
         try {
-            const result = await Linking.openURL('https://github.com/Moxde/Shoppinglist/releases/download/v1.0.2/app-release.apk');
+            const result = await Linking.openURL('https://github.com/Moxde/Shoppinglist/releases/download/v1.0.3/app-release.apk');
             if (!result) {
                 console.error('Fehler beim Öffnen des Links');
             }
