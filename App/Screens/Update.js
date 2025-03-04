@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Linking } from 'react-native';
+import { View, Text, StyleSheet, Linking, ScrollView, Image } from 'react-native';
 import DeviceInfo from 'react-native-device-info'; // Importiere die DeviceInfo-Bibliothek
 import Colors from '../constant/Colos';
 import HomeOptions from '../components/HomeOptions';
+
+
+
 
 function Update() {
     const [appVersion, setAppVersion] = useState('');
@@ -32,7 +35,7 @@ function Update() {
                     // Suche nach dem APK-Asset
                     const apkAsset = data.assets.find(asset => asset.name === 'app-release.apk');
                     if (apkAsset) {
-                        setApkLink(apkAsset.browser_download_url); // APK-Download-Link
+                        setApkLink(apkAsset.browser_download_url); 
                     } else {
                         console.error('Kein APK-Asset gefunden');
                     }
@@ -76,7 +79,7 @@ function Update() {
         : checkForUpdate;
 
     return (
-        <View style={styles.mainCont}>
+        <ScrollView style={styles.mainCont}>
             <Text style={styles.versionText}>Aktuelle Version: {appVersion}</Text>
             
             {hasSearchedForUpdate && ( 
@@ -85,7 +88,9 @@ function Update() {
                         <>
                             <Text style={styles.versionText1}>Neueste Version: {latestVersion}</Text>
                             <Text style={styles.descText}>{updateDescription}</Text>
+                            <Screens/>
                         </>
+                        
                     ) : (
                         <Text style={styles.versionText1}>Du hast die neueste Version!</Text> 
                     )}
@@ -94,7 +99,7 @@ function Update() {
             <View style={styles.btn}>
                 <HomeOptions textStyle={styles.customHomeOption} text={buttonText} onPress={buttonAction} />
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
@@ -105,7 +110,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     versionText: {
-        fontSize: 20,
+        fontSize: 25,
         color: Colors.textwhite,
         marginBottom: 10,
     },
@@ -128,11 +133,48 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     btn: {
-        marginTop: 100
+        marginTop: 25,
+        marginBottom:100
     },
     customHomeOption: {
         fontSize: 25
-    }
+    },
+    contscreen: {
+        flexDirection: "row", 
+        height: 600,
+        width: "100%",
+        backgroundColor: Colors.backgroundbgrey,
+        borderRadius:25
+    },
+    screenshot: {
+        width: "340",            
+        height: 550,           
+        margin:25,
+        marginHorizontal:0,         
+        resizeMode: "contain",
+        borderColor:Colors.whitedarl,
+        borderWidth:2,
+        backgroundColor:Colors.primarydark,
+        borderRadius:5
+        }
 });
 
 export default Update;
+
+const Screenshots =[
+    require('../assets/Screenshots/screen1.png'),
+    require('../assets/Screenshots/screen2.png'),
+    require('../assets/Screenshots/screen3.png')
+];
+
+function Screens (){
+    return(
+        <View >
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.contscreen}>
+            {Screenshots.map((image, index) => (
+                                    <Image key={index} source={image} style={styles.screenshot} />
+                                ))}
+            </ScrollView>
+        </View>
+    )
+}
