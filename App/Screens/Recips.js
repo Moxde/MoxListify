@@ -6,7 +6,7 @@ import Colors from '../constant/Colos'
 function Recips (){
     return(
         <View style={style.mainCont}>
-         <Searchcont/>   
+         
         </View>
     )
 }

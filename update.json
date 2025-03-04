@@ -1,6 +1,5 @@
 {
-    "version": "1.0.1",
-    "description": " Suchfeld   ",
-    "downloadUrl": "https://github.com/Moxde/MoxListify/releases/download/v1.0.1/app-release.apk"
-  }
-  
+  "latestVersion": "1.0.2",
+  "description": "🔹 Fehlerbehebungen und Verbesserungen.\n🔹 Neue Funktionen hinzugefügt.",
+  "apkUrl": "https://github.com/Moxde/MoxListify/releases/download/1.0.2/app-release.apk"
+}

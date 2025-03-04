@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Linking } from 'react-native';
+import DeviceInfo from 'react-native-device-info'; // Importiere die DeviceInfo-Bibliothek
 import Colors from '../constant/Colos';
 import HomeOptions from '../components/HomeOptions';
 
@@ -7,41 +8,58 @@ function Update() {
     const [appVersion, setAppVersion] = useState('');
     const [latestVersion, setLatestVersion] = useState('');
     const [updateDescription, setUpdateDescription] = useState('');
-    const [hasSearchedForUpdate, setHasSearchedForUpdate] = useState(false); // Neuer Zustand
+    const [apkLink, setApkLink] = useState('');
+    const [hasSearchedForUpdate, setHasSearchedForUpdate] = useState(false);
 
     useEffect(() => {
-        // Lokale App-Version abrufen
+        // Lokale App-Version dynamisch abrufen
         const fetchAppVersion = async () => {
-            const version = '1.0.1'; // Hier später die echte Version abrufen
+            const version = await DeviceInfo.getVersion(); // Holt die aktuelle Version
             setAppVersion(version);
         };
 
-        // Online-Version abrufen
+        // Online-Version und Release-Link abrufen
         const fetchUpdateInfo = async () => {
             try {
-                const response = await fetch('https://raw.githubusercontent.com/Moxde/Shoppinglist/main/update.json');
+                // GitHub Releases API für neueste Version
+                const response = await fetch('https://api.github.com/repos/Moxde/MoxListify/releases/latest');
                 const data = await response.json();
-                setLatestVersion(data.version);
-                setUpdateDescription(data.description);
+
+                if (data && data.tag_name) {
+                    setLatestVersion(data.tag_name); // z.B. v1.0.2
+                    setUpdateDescription(data.body); // Update-Beschreibung
+                    
+                    // Suche nach dem APK-Asset
+                    const apkAsset = data.assets.find(asset => asset.name === 'app-release.apk');
+                    if (apkAsset) {
+                        setApkLink(apkAsset.browser_download_url); // APK-Download-Link
+                    } else {
+                        console.error('Kein APK-Asset gefunden');
+                    }
+                } else {
+                    console.error('Keine Version gefunden');
+                }
             } catch (error) {
                 console.error('Fehler beim Laden der Update-Infos:', error);
             }
         };
 
         fetchAppVersion();
-        fetchUpdateInfo(); // fetchUpdateInfo beim Initialisieren
+        fetchUpdateInfo();
     }, []);
 
     const checkForUpdate = async () => {
-        setHasSearchedForUpdate(true); // Setze Zustand, wenn nach Update gesucht wird
+        setHasSearchedForUpdate(true); // Zustand, wenn nach Update gesucht wird
         await fetchUpdateInfo(); // Manuell nach Updates suchen
     };
 
     const handleDownload = async () => {
         try {
-            const result = await Linking.openURL('https://github.com/Moxde/MoxListify/releases/download/v1.0.1/app-release.apk');
-            if (!result) {
-                console.error('Fehler beim Öffnen des Links');
+            if (apkLink) {
+                // Versuche, den Link zu öffnen
+                await Linking.openURL(apkLink);
+            } else {
+                console.error('Kein APK-Link verfügbar');
             }
         } catch (error) {
             console.error('Fehler beim Öffnen des Links:', error);
