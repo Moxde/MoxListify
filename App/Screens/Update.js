@@ -61,7 +61,7 @@ function Update() {
         <View style={styles.mainCont}>
             <Text style={styles.versionText}>Aktuelle Version: {appVersion}</Text>
             
-            {hasSearchedForUpdate && ( // Version-Info nur anzeigen, wenn nach Update gesucht wurde
+            {hasSearchedForUpdate && ( 
                 <View style={styles.versioncont}>
                     {appVersion !== latestVersion ? (
                         <>
@@ -69,7 +69,7 @@ function Update() {
                             <Text style={styles.descText}>{updateDescription}</Text>
                         </>
                     ) : (
-                        <Text style={styles.versionText1}>Du hast die neueste Version!</Text> // Nachricht wenn aktuell
+                        <Text style={styles.versionText1}>Du hast die neueste Version!</Text> 
                     )}
                 </View>
             )}
