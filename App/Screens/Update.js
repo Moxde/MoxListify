@@ -39,7 +39,7 @@ function Update() {
 
     const handleDownload = async () => {
         try {
-            // Beispiel für das Öffnen des direkten Links zur APK
+            
             const result = await Linking.openURL('https://github.com/Moxde/Shoppinglist/releases/download/v1.0.1/app-release.apk');
             if (!result) {
                 console.error('Fehler beim Öffnen des Links');
