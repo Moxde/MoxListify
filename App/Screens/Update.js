@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Button, Linking } from 'react-native';
+import Colors from '../constant/Colos';
+import HomeOptions from '../components/HomeOptions';
 
 function Update() {
     const [appVersion, setAppVersion] = useState('');
@@ -26,14 +28,37 @@ function Update() {
         };
 
         fetchAppVersion();
-        fetchUpdateInfo();
+        fetchUpdateInfo(); // fetchUpdateInfo beim Initialisieren
     }, []);
+
+    const checkForUpdate = async () => {
+        await fetchUpdateInfo(); // Manuell nach Updates suchen
+    };
+
+    const handleDownload = async () => {
+        try {
+            // Beispiel für das Öffnen des direkten Links zur APK
+            const result = await Linking.openURL('https://github.com/Moxde/Shoppinglist/releases/download/v1.0.1/app-release.apk');
+            if (!result) {
+                console.error('Fehler beim Öffnen des Links');
+            }
+        } catch (error) {
+            console.error('Fehler beim Öffnen des Links:', error);
+        }
+    };
 
     return (
         <View style={styles.mainCont}>
             <Text style={styles.versionText}>Aktuelle Version: {appVersion}</Text>
-            <Text style={styles.versionText}>Neueste Version: {latestVersion}</Text>
-            <Text style={styles.descText}>{updateDescription}</Text>
+            <View style={styles.versioncont}>
+                <Text style={styles.versionText1}>Neueste Version: {latestVersion}</Text>
+                <Text style={styles.descText}>{updateDescription}</Text>
+            </View>
+            
+            <HomeOptions text="Nach Updates suchen" onPress={checkForUpdate} />
+            {appVersion !== latestVersion && (
+                <HomeOptions text="Update herunterladen" onPress={handleDownload} />
+            )}
         </View>
     );
 }
@@ -41,18 +66,31 @@ function Update() {
 const styles = StyleSheet.create({
     mainCont: {
         flex: 1,
-        backgroundColor: '#333',
+        backgroundColor: Colors.backgroundbgrey,
         padding: 20,
     },
     versionText: {
         fontSize: 20,
-        color: '#fff',
+        color: Colors.textwhite,
         marginBottom: 10,
     },
+    versionText1: {
+        fontSize: 25,
+        color: Colors.textwhite,
+        marginBottom: 25,
+        marginLeft: 10,
+        marginTop: 20,
+    },
     descText: {
-        fontSize: 16,
-        color: '#bbb',
-    }
+        fontSize: 19,
+        color: Colors.whitedarl,
+        marginBottom: 20,
+        marginLeft: 20,
+    },
+    versioncont: {
+        backgroundColor: Colors.primarylight,
+        borderRadius: 25,
+    },
 });
 
 export default Update;
