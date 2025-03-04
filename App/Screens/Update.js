@@ -39,7 +39,6 @@ function Update() {
 
     const handleDownload = async () => {
         try {
-            
             const result = await Linking.openURL('https://github.com/Moxde/Shoppinglist/releases/download/v1.0.1/app-release.apk');
             if (!result) {
                 console.error('Fehler beim Öffnen des Links');
@@ -49,21 +48,34 @@ function Update() {
         }
     };
 
+    // Bestimmen des Button-Textes und der Funktionalität
+    const buttonText = hasSearchedForUpdate 
+        ? (appVersion !== latestVersion ? "Update herunterladen" : "Du hast die neueste Version!")
+        : "Nach Updates suchen";
+
+    const buttonAction = hasSearchedForUpdate
+        ? (appVersion !== latestVersion ? handleDownload : null)
+        : checkForUpdate;
+
     return (
         <View style={styles.mainCont}>
             <Text style={styles.versionText}>Aktuelle Version: {appVersion}</Text>
             
             {hasSearchedForUpdate && ( // Version-Info nur anzeigen, wenn nach Update gesucht wurde
                 <View style={styles.versioncont}>
-                    <Text style={styles.versionText1}>Neueste Version: {latestVersion}</Text>
-                    <Text style={styles.descText}>{updateDescription}</Text>
+                    {appVersion !== latestVersion ? (
+                        <>
+                            <Text style={styles.versionText1}>Neueste Version: {latestVersion}</Text>
+                            <Text style={styles.descText}>{updateDescription}</Text>
+                        </>
+                    ) : (
+                        <Text style={styles.versionText1}>Du hast die neueste Version!</Text> // Nachricht wenn aktuell
+                    )}
                 </View>
             )}
-
-            <HomeOptions text="Nach Updates suchen" onPress={checkForUpdate} />
-            {appVersion !== latestVersion && hasSearchedForUpdate && (
-                <HomeOptions text="Update herunterladen" onPress={handleDownload} />
-            )}
+            <View style={styles.btn}>
+                <HomeOptions textStyle={styles.customHomeOption} text={buttonText} onPress={buttonAction} />
+            </View>
         </View>
     );
 }
@@ -97,6 +109,12 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         padding: 20,
     },
+    btn: {
+        marginTop: 100
+    },
+    customHomeOption: {
+        fontSize: 25
+    }
 });
 
 export default Update;

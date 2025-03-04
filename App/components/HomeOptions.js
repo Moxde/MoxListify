@@ -4,7 +4,7 @@ import Colors from '../constant/Colos';
 
 const { width } = Dimensions.get('window');
 
-function HomeOptions({ text, onPress }) {
+function HomeOptions({ text, onPress,textStyle }) {
 
   const scaleValue = useRef(new Animated.Value(1)).current;
   const bgColor = useRef(new Animated.Value(0)).current;
@@ -48,7 +48,7 @@ function HomeOptions({ text, onPress }) {
         onPress={onPress}
         activeOpacity={0.9}
       >
-        <Text style={styles.text}>{text}</Text>
+        <Text style={[styles.text, textStyle]}>{text}</Text>
       </TouchableOpacity>
     </Animated.View>
   );
