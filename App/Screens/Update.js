@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button, Linking } from 'react-native';
+import { View, Text, StyleSheet, Linking } from 'react-native';
 import Colors from '../constant/Colos';
 import HomeOptions from '../components/HomeOptions';
 
@@ -7,6 +7,7 @@ function Update() {
     const [appVersion, setAppVersion] = useState('');
     const [latestVersion, setLatestVersion] = useState('');
     const [updateDescription, setUpdateDescription] = useState('');
+    const [hasSearchedForUpdate, setHasSearchedForUpdate] = useState(false); // Neuer Zustand
 
     useEffect(() => {
         // Lokale App-Version abrufen
@@ -32,6 +33,7 @@ function Update() {
     }, []);
 
     const checkForUpdate = async () => {
+        setHasSearchedForUpdate(true); // Setze Zustand, wenn nach Update gesucht wird
         await fetchUpdateInfo(); // Manuell nach Updates suchen
     };
 
@@ -50,13 +52,16 @@ function Update() {
     return (
         <View style={styles.mainCont}>
             <Text style={styles.versionText}>Aktuelle Version: {appVersion}</Text>
-            <View style={styles.versioncont}>
-                <Text style={styles.versionText1}>Neueste Version: {latestVersion}</Text>
-                <Text style={styles.descText}>{updateDescription}</Text>
-            </View>
             
+            {hasSearchedForUpdate && ( // Version-Info nur anzeigen, wenn nach Update gesucht wurde
+                <View style={styles.versioncont}>
+                    <Text style={styles.versionText1}>Neueste Version: {latestVersion}</Text>
+                    <Text style={styles.descText}>{updateDescription}</Text>
+                </View>
+            )}
+
             <HomeOptions text="Nach Updates suchen" onPress={checkForUpdate} />
-            {appVersion !== latestVersion && (
+            {appVersion !== latestVersion && hasSearchedForUpdate && (
                 <HomeOptions text="Update herunterladen" onPress={handleDownload} />
             )}
         </View>
@@ -90,6 +95,7 @@ const styles = StyleSheet.create({
     versioncont: {
         backgroundColor: Colors.primarylight,
         borderRadius: 25,
+        padding: 20,
     },
 });
 
