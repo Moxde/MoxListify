@@ -8,6 +8,7 @@ function SavedRecips (){
         <View style={style.mainCont}>
             <Searchcont/>
             <Searchcont/>
+            <Searchcont/>
         </View>
     )
 }
@@ -16,7 +17,8 @@ const style = StyleSheet.create ({
 
     mainCont:{
         flex:1,
-        backgroundColor:Colors.backgroundbgrey
+        backgroundColor:Colors.backgroundbgrey,
+        flexDirection:"row"
     }
 })
 

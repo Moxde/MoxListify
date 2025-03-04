@@ -12,7 +12,7 @@ function Update() {
     useEffect(() => {
         // Lokale App-Version abrufen
         const fetchAppVersion = async () => {
-            const version = '1.0.0'; // Hier später die echte Version abrufen
+            const version = '1.0.1'; // Hier später die echte Version abrufen
             setAppVersion(version);
         };
 
