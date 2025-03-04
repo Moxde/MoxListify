@@ -7,8 +7,7 @@ import HomeOptions from '../components/HomeOptions'
 function SavedRecips (){
     return(
         <View style={style.mainCont}>
-            <HomeOptions text ="Text"/>
-            <HomeOptions text ="Text2"/>
+            
         </View>
     )
 }
