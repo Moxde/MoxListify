@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Linking, ScrollView, Image } from 'react-native';
-import DeviceInfo from 'react-native-device-info'; // Importiere die DeviceInfo-Bibliothek
+import DeviceInfo from 'react-native-device-info';
 import Colors from '../constant/Colos';
 import HomeOptions from '../components/HomeOptions';
 
@@ -17,7 +17,7 @@ function Update() {
     useEffect(() => {
         // Lokale App-Version dynamisch abrufen
         const fetchAppVersion = async () => {
-            const version = await DeviceInfo.getVersion(); // Holt die aktuelle Version
+            const version = await DeviceInfo.getVersion(); 
             setAppVersion(version);
         };
 
@@ -52,8 +52,8 @@ function Update() {
     }, []);
 
     const checkForUpdate = async () => {
-        setHasSearchedForUpdate(true); // Zustand, wenn nach Update gesucht wird
-        await fetchUpdateInfo(); // Manuell nach Updates suchen
+        setHasSearchedForUpdate(true); 
+        await fetchUpdateInfo(); 
     };
 
     const handleDownload = async () => {
@@ -69,7 +69,7 @@ function Update() {
         }
     };
 
-    // Bestimmen des Button-Textes und der Funktionalität
+    
     const buttonText = hasSearchedForUpdate 
         ? (appVersion !== latestVersion ? "Update herunterladen" : "Du hast die neueste Version!")
         : "Nach Updates suchen";
