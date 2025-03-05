@@ -1,5 +1,5 @@
 {
-  "latestVersion": "1.0.4",
-  "description": "Die neue Update-Seite zeigt auch Screenshots der Neuerungen und Fehlerbehebungen.",
+  "latestVersion": "1.0.5",
+  "description": "Mit dem neuen Update können Nutzer beim Hinzufügen von Artikeln zur Einkaufsliste nun die Einheit wählen: Stück (St), Esslöffel (EL), Gramm (g) oder Kilogramm (kg). Zudem wurden Fehler behoben und die App weiter optimiert.",
   "apkUrl": "https://github.com/Moxde/MoxListify/releases/download/1.0.4/app-release.apk"
 }
