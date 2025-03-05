@@ -161,10 +161,10 @@ const styles = StyleSheet.create({
 
 export default Update;
 
-const Screenshots =[
-    require('../assets/Screenshots/screen1.png'),
-    require('../assets/Screenshots/screen2.png'),
-    require('../assets/Screenshots/screen3.png')
+const Screenshots = [
+    'https://raw.githubusercontent.com/Moxde/MoxListify/1.0.5/App/assets/Screenshots/screen1.png',
+    'https://raw.githubusercontent.com/Moxde/MoxListify/1.0.5/App/assets/Screenshots/screen2.png',
+    'https://raw.githubusercontent.com/Moxde/MoxListify/1.0.5/App/assets/Screenshots/screen3.png'
 ];
 
 function Screens (){
@@ -172,7 +172,7 @@ function Screens (){
         <View >
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.contscreen}>
             {Screenshots.map((image, index) => (
-                                    <Image key={index} source={image} style={styles.screenshot} />
+                                    <Image key={index} source={{ uri: image }} style={styles.screenshot} />
                                 ))}
             </ScrollView>
         </View>
