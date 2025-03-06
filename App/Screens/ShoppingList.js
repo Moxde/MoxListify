@@ -379,6 +379,9 @@ const styles = StyleSheet.create({
     height: 150,
     borderTopLeftRadius: 35,
     borderTopRightRadius: 35,
+    borderColor:Colors.primarylight,
+    borderWidth: 2,
+    bottom:-10
   },
   sepv: {
     backgroundColor: Colors.whitedarl,
@@ -399,6 +402,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginVertical: 20,
     marginHorizontal: 50,
+    
   },
   list: {
     marginHorizontal: 9,
@@ -415,7 +419,10 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: 'space-between',
     margin: 5,
-    paddingLeft: 50
+    paddingLeft: 50,
+    borderColor:Colors.primarylight,
+    borderWidth: 2,
+
   },
   textCard: {
     color: Colors.textwhite,

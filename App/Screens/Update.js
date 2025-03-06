@@ -110,9 +110,10 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     versionText: {
-        fontSize: 25,
+        fontSize: 23,
         color: Colors.textwhite,
         marginBottom: 10,
+        letterSpacing:1
     },
     versionText1: {
         fontSize: 25,
@@ -120,6 +121,8 @@ const styles = StyleSheet.create({
         marginBottom: 25,
         marginLeft: 10,
         marginTop: 20,
+        
+        
     },
     descText: {
         fontSize: 19,
