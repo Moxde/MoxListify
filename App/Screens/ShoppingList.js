@@ -29,11 +29,11 @@ function ShoppingList() {
   const [editItemId, setEditItemId] = useState(null);
 
   useEffect(() => {
-    // Erstelle Tabelle, falls sie noch nicht existiert – "amount" als REAL
+    
     db.execute(
       'CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, amount REAL);'
     );
-    // Migration: Prüfe, ob Spalte "unit" existiert, andernfalls hinzufügen
+    
     const result = db.execute("PRAGMA table_info(items)");
     const columns = result.rows._array;
     const unitExists = columns.some(col => col.name === 'unit');
@@ -44,7 +44,7 @@ function ShoppingList() {
         Alert.alert("Migration Fehler", "Konnte die Spalte 'unit' nicht hinzufügen.");
       }
     }
-    // Daten laden
+    
     const { rows } = db.execute('SELECT * FROM items');
     setDatabase(rows._array);
   }, []);
@@ -104,6 +104,7 @@ function ShoppingList() {
             checkOn={checkOn || editMode}  
             toggleChecked={toggleChecked} 
             checkedItems={editMode ? [editItemId] : checkedItems} 
+            deleteOn={deleteOn}  
           />
         </ScrollView>
       </View>
@@ -315,7 +316,7 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
   );
 }
 
-function CardList({ database, checkOn, toggleChecked, checkedItems }) {
+function CardList({ database, checkOn, toggleChecked, checkedItems, deleteOn }) {
   const renderedItems = useMemo(() => {
     return database.map(item => (
       <View key={item.id} style={styles.cardCont}>
@@ -323,22 +324,30 @@ function CardList({ database, checkOn, toggleChecked, checkedItems }) {
           <MyBoxCheck 
             id={item.id} 
             toggleChecked={toggleChecked} 
-            isChecked={checkedItems.includes(item.id)} 
+            isChecked={checkedItems.includes(item.id)}
+            deleteOn={deleteOn} 
           />
         }
         <Text style={styles.textCard}>{item.name}</Text>
         <Text style={styles.amount}>{item.amount} {item.unit}</Text>
       </View>
     ));
-  }, [database, checkOn, checkedItems]);  
-  
+  }, [database, checkOn, checkedItems, deleteOn]);  
+
   return <View>{renderedItems}</View>;
 }
 
-function MyBoxCheck({ id, toggleChecked, isChecked }) {
+function MyBoxCheck({ id, toggleChecked, isChecked, deleteOn }) {
   return (
     <TouchableOpacity onPress={() => toggleChecked(id)} style={styles.myCheck}>
-      {isChecked && <View style={styles.myChecked} />}
+      {isChecked && (
+        <View 
+          style={[
+            styles.myChecked, 
+            deleteOn && { backgroundColor: Colors.reddelet } 
+          ]} 
+        />
+      )}
     </TouchableOpacity>
   );
 }
