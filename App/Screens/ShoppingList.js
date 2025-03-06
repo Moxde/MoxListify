@@ -12,6 +12,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import Colors from '../constant/Colos';
 import Searchcont from '../components/Searchcont';
+import SafetyDialog from '../components/SafetyDialog'; 
 import { open } from 'react-native-quick-sqlite';
 
 const db = open({
@@ -28,8 +29,9 @@ function ShoppingList() {
   const [editMode, setEditMode] = useState(false);
   const [editItemId, setEditItemId] = useState(null);
 
+  const [showSafetyDialog, setShowSafetyDialog] = useState(false);
+
   useEffect(() => {
-    
     db.execute(
       'CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, amount REAL);'
     );
@@ -94,6 +96,11 @@ function ShoppingList() {
     }
   };
 
+  
+  const confirmDelete = () => {
+    setShowSafetyDialog(true);
+  };
+
   return (
     <View style={styles.mainCont}>
       <Searchcont searchText={searchText} setSearchText={setSearchText} />
@@ -113,7 +120,8 @@ function ShoppingList() {
         activateDeletion={activateDeletion} 
         cancelDeletion={cancelDeletion}
         deleteOn={deleteOn} 
-        deleteSelectedItems={deleteSelectedItems}
+       
+        deleteSelectedItems={confirmDelete}
         editMode={editMode}
         setEditMode={setEditMode}
         editItemId={editItemId}
@@ -122,6 +130,19 @@ function ShoppingList() {
         setCheckOn={setCheckOn}
         loadItems={loadItems}
       />
+      
+      {showSafetyDialog && (
+        <SafetyDialog
+          yesBtnText="Löschen"
+          saeftyQuestion="Möchten Sie diese Artikel wirklich löschen?"
+          
+          yesBtn={() => { deleteSelectedItems(); setShowSafetyDialog(false); }}
+          
+          noBtn={() => setShowSafetyDialog(false)}
+          
+          stylyesbtn={{ backgroundColor: Colors.reddelet }}
+        />
+      )}
     </View>
   );
 }
@@ -152,14 +173,11 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
 
     try {
       if (editMode && editItemId !== null) {
-        // Update-Modus: Direkte Aktualisierung ohne Zusammenführen
         db.execute(
           'UPDATE items SET name = ?, amount = ?, unit = ? WHERE id = ?',
           [newItemName, parseFloat(newItemAmount), newItemUnit, editItemId]
         );
       } else {
-        // Beim Hinzufügen: Prüfen, ob es bereits einen Eintrag mit gleichem Artikel gibt.
-        // Für G und KG werden Einträge zusammengeführt; für EL und St. wird exakt verglichen.
         const existingRecord = database.find(item => 
           item.name.toLowerCase() === newItemName.toLowerCase() && 
           ((newItemUnit === "G" || newItemUnit === "KG") 
@@ -172,7 +190,6 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
           let updatedUnit;
           if (newItemUnit === "KG") {
             let newGrams;
-            // Wenn der Eingabestring ein Komma enthält, wird nur der Nachkommateil als Gramm interpretiert.
             if (newItemAmount.includes(',')) {
               newGrams = parseInt(newItemAmount.split(',')[1], 10);
             } else {
@@ -202,7 +219,6 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
               }
             }
           } else {
-            // Für EL und St.
             updatedUnit = newItemUnit;
             updatedAmount = existingRecord.amount + parseFloat(newItemAmount);
           }
@@ -211,7 +227,6 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
             [updatedAmount, updatedUnit, existingRecord.id]
           );
         } else {
-          // Kein bestehender Eintrag – neuen Artikel einfügen.
           let amountInput;
           if (newItemUnit === "KG") {
             amountInput = parseFloat(newItemAmount.replace(',', '.'));
@@ -388,9 +403,9 @@ const styles = StyleSheet.create({
     height: 150,
     borderTopLeftRadius: 35,
     borderTopRightRadius: 35,
-    borderColor:Colors.primarylight,
+    borderColor: Colors.primarylight,
     borderWidth: 2,
-    bottom:-10
+    bottom: -10,
   },
   sepv: {
     backgroundColor: Colors.whitedarl,
@@ -411,7 +426,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginVertical: 20,
     marginHorizontal: 50,
-    
   },
   list: {
     marginHorizontal: 9,
@@ -429,9 +443,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     margin: 5,
     paddingLeft: 50,
-    borderColor:Colors.primarylight,
+    borderColor: Colors.primarylight,
     borderWidth: 2,
-
   },
   textCard: {
     color: Colors.textwhite,
@@ -511,7 +524,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(12, 12, 12, 0.8)', 
+    backgroundColor: 'rgba(12, 12, 12, 0.8)',
   },
   modalContent: {
     backgroundColor: Colors.primary,
@@ -537,73 +550,73 @@ const styles = StyleSheet.create({
     color: Colors.textwhite,
     fontWeight: 'bold',
     top: -5,
-    right: -8
+    right: -8,
   },
   myCheck: {
-    position: "absolute",
+    position: 'absolute',
     height: 27,
     width: 27,
     backgroundColor: Colors.whitedarl,
     top: 22,
     left: 20,
     borderRadius: 5,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     borderColor: Colors.textwhite,
-    borderWidth: 1
+    borderWidth: 1,
   },
   myChecked: {
-    textAlign: "center",
+    textAlign: 'center',
     fontSize: 21,
-    width: "100%",
+    width: '100%',
     backgroundColor: Colors.greencheck,
-    height: "100%",
+    height: '100%',
     borderRadius: 5,
   },
   mainDel: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     backgroundColor: Colors.textwhite,
     height: 78,
-    width: "100%",
+    width: '100%',
     bottom: 80,
     borderColor: Colors.primary,
     borderTopRightRadius: 35,
     borderTopLeftRadius: 35,
-    borderWidth: 5
+    borderWidth: 5,
   },
   deletbb: {
     backgroundColor: Colors.reddelet,
-    width: "50%",
+    width: '50%',
     borderTopLeftRadius: 25,
     borderRightWidth: 2,
     borderColor: Colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   dondel: {
     backgroundColor: Colors.bblack,
-    width: "50%",
+    width: '50%',
     borderTopRightRadius: 25,
     borderLeftWidth: 2,
     borderColor: Colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cancelDeltext: {
     color: Colors.textwhite,
-    fontFamily: "monospace",
+    fontFamily: 'monospace',
     fontSize: 25,
   },
   edittbb: {
     backgroundColor: Colors.greencheck,
-    width: "50%",
+    width: '50%',
     borderTopLeftRadius: 25,
     borderRightWidth: 2,
     borderColor: Colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-  }
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default ShoppingList;

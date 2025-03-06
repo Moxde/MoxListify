@@ -10,7 +10,9 @@ const Colors ={
     whitedarl:"#abacab",
     listbk:"#232121",
     greencheck:"#00A000",
-    reddelet:"#FF0000"
+    reddelet:"#FF0000",
+    transpertblc:"rgba(31, 31, 31, 0.6)",
+    Primarytransf:" rgb(34, 19, 111)",
 
 }
 
