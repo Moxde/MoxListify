@@ -13,7 +13,7 @@ function AppBarS({scName}) {
         <TouchableOpacity onPress={() => navigation.navigate("Home")} accessible={true} accessibilityLabel="Zurück zur Startseite">
           
           </TouchableOpacity>
-          <TouchableOpacity >
+          <TouchableOpacity onPress={() => navigation.navigate("Home")} accessible={true} accessibilityLabel="Zurück zur Startseite">
            <Image source={require('../assets/img/logo1.png')} style={style.img} />
           </TouchableOpacity>
         </View>

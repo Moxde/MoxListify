@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
         marginBottom:100
     },
     customHomeOption: {
-        fontSize: 25
+        fontSize: 20
     },
     contscreen: {
         flexDirection: "row", 

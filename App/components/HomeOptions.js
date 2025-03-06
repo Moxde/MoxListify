@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: Colors.textwhite,
-    fontSize: 30,
+    fontSize: 27,
     textAlign: 'center',
     fontFamily: 'monospace',
     padding: 15,
