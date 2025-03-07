@@ -92,11 +92,16 @@ const recipes = [
 
 function SavedRecips() {
   const [recipeList, setRecipeList] = useState(recipes);
+  const [searchText, setSearchText] = useState('');
   const [deleteMode, setDeleteMode] = useState(false);
   const [addMode, setAddMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [showSafetyDialog, setShowSafetyDialog] = useState(false);
   const [showAlertDialog, setShowAlertDialog] = useState(false);
+
+  const filteredRecipes = recipeList.filter(recipe =>
+    recipe.recipeName.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   const toggleSelection = (id) => {
     setSelectedItems(prev =>
@@ -194,9 +199,9 @@ function SavedRecips() {
 
   return (
     <View style={style.mainCont}>
-      <Searchcont contstyle={style.serchc} />
+      <Searchcont searchText={searchText} setSearchText={setSearchText} />
       <FlatList
-        data={recipeList}
+        data={filteredRecipes}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <RecipsCard
@@ -252,13 +257,12 @@ function SavedRecips() {
           stylyesbtn={{ backgroundColor: addMode ? Colors.greencheck : Colors.reddelet }}
         />
       )}
-
       {showAlertDialog && (
         <AlertDialog 
-        yesBtn={() => { setShowAlertDialog(false); }}
-        dialogtext="Sie müssen mindestens 1 Rezept wählen" 
+          yesBtn={() => { setShowAlertDialog(false); }}
+          dialogtext="Sie müssen mindestens 1 Rezept wählen" 
         />
-        )}
+      )}
     </View>
   );
 }

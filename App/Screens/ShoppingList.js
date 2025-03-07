@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     position: 'absolute',
-    top: -800,
+    top: -900,
     left: 0,
     right: 0,
     bottom: 0,
