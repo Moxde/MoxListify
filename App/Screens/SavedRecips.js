@@ -3,6 +3,12 @@ import { View, StyleSheet, FlatList, Text, TouchableOpacity, Image } from 'react
 import Colors from '../constant/Colos';
 import Searchcont from '../components/Searchcont';
 import SafetyDialog from '../components/SafetyDialog';
+import { open } from 'react-native-quick-sqlite';
+
+const db = open({
+  name: 'shopping.db',
+  location: 'default'
+});
 
 const recipes = [
   {
@@ -19,7 +25,7 @@ const recipes = [
       { ingredient: "Feta Cheese", quantity: "60", unit: "G" },
       { ingredient: "Feta Cheese", quantity: "20", unit: "G" },
       { ingredient: "Feta Cheese", quantity: "100", unit: "G" },
-      { ingredient: "Feta Cheese", quantity: "100", unit: "G" },
+      { ingredient: "Feta Cheese", quantity: "100", unit: "G" }
     ]
   },
   {
@@ -27,7 +33,7 @@ const recipes = [
     recipeName: "Apple Pie",
     ingredients: [
       { ingredient: "Apple", quantity: "4", unit: "St" },
-      { ingredient: "Flour", quantity: "250", unit: "G" },
+      { ingredient: "Flour", quantity: "2", unit: "KG" },
       { ingredient: "Sugar", quantity: "150", unit: "G" },
       { ingredient: "Butter", quantity: "100", unit: "G" },
       { ingredient: "Cinnamon", quantity: "1", unit: "EL" },
@@ -86,6 +92,7 @@ const recipes = [
 function SavedRecips() {
   const [recipeList, setRecipeList] = useState(recipes);
   const [deleteMode, setDeleteMode] = useState(false);
+  const [addMode, setAddMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [showSafetyDialog, setShowSafetyDialog] = useState(false);
 
@@ -95,21 +102,84 @@ function SavedRecips() {
     );
   };
 
-  
   const handleDelete = () => {
     setRecipeList(prev => prev.filter(recipe => !selectedItems.includes(recipe.id)));
     setDeleteMode(false);
     setSelectedItems([]);
   };
 
-  const cancelDelete = () => {
+  const cancelAction = () => {
     setDeleteMode(false);
+    setAddMode(false);
     setSelectedItems([]);
   };
 
-  
   const confirmDelete = () => {
     setShowSafetyDialog(true);
+  };
+
+  const confirmAdd = () => {
+    setShowSafetyDialog(true);
+  };
+
+  const addRecipesToShoppingList = () => {
+    const selectedRecipes = recipeList.filter(recipe => selectedItems.includes(recipe.id));
+    selectedRecipes.forEach(recipe => {
+      recipe.ingredients.forEach(ingredient => {
+        addOrUpdateIngredient(ingredient);
+      });
+    });
+    cancelAction();
+  };
+
+  const addOrUpdateIngredient = (ingredient) => {
+    const result = db.execute('SELECT * FROM items WHERE lower(name) = ?', [ingredient.ingredient.toLowerCase()]);
+    const rows = result.rows._array;
+    if (rows && rows.length > 0) {
+      let existingRecord = rows.find(item => {
+        if (ingredient.unit === "G" || ingredient.unit === "KG") {
+          return (item.unit === "G" || item.unit === "KG");
+        } else {
+          return item.unit === ingredient.unit;
+        }
+      });
+      if (existingRecord) {
+        let updatedAmount, updatedUnit;
+        if (ingredient.unit === "KG") {
+          let newGrams = ingredient.quantity.toString().includes(',') 
+            ? parseInt(ingredient.quantity.split(',')[1], 10) 
+            : parseFloat(ingredient.quantity) * 1000;
+          const existingGrams = (existingRecord.unit === "KG" ? existingRecord.amount * 1000 : existingRecord.amount);
+          const totalGrams = existingGrams + newGrams;
+          updatedUnit = "KG";
+          updatedAmount = totalGrams % 1000 !== 0 
+            ? parseFloat((totalGrams / 1000).toFixed(3))
+            : totalGrams / 1000;
+        } else if (ingredient.unit === "G") {
+          const existingGrams = (existingRecord.unit === "KG" ? existingRecord.amount * 1000 : existingRecord.amount);
+          const newGrams = parseFloat(ingredient.quantity);
+          const totalGrams = existingGrams + newGrams;
+          if (totalGrams < 1000) {
+            updatedUnit = "G";
+            updatedAmount = totalGrams;
+          } else {
+            updatedUnit = "KG";
+            updatedAmount = totalGrams % 1000 !== 0 
+              ? parseFloat((totalGrams / 1000).toFixed(3))
+              : totalGrams / 1000;
+          }
+        } else {
+          updatedUnit = ingredient.unit;
+          updatedAmount = existingRecord.amount + parseFloat(ingredient.quantity);
+        }
+        db.execute('UPDATE items SET amount = ?, unit = ? WHERE id = ?', [updatedAmount, updatedUnit, existingRecord.id]);
+        return;
+      }
+    }
+    let amountInput = ingredient.unit === "KG" 
+      ? parseFloat(ingredient.quantity.toString().replace(',', '.')) 
+      : parseFloat(ingredient.quantity);
+    db.execute('INSERT INTO items (name, amount, unit) VALUES (?, ?, ?)', [ingredient.ingredient, amountInput, ingredient.unit]);
   };
 
   return (
@@ -122,6 +192,7 @@ function SavedRecips() {
           <RecipsCard
             recipe={item}
             deleteMode={deleteMode}
+            addMode={addMode}
             selectedItems={selectedItems}
             toggleSelection={toggleSelection}
           />
@@ -129,34 +200,61 @@ function SavedRecips() {
         contentContainerStyle={{ alignItems: 'center' }}
         style={style.flatList}
       />
-      <OptionBTNs onDeleteMode={() => setDeleteMode(true)} />
-      {deleteMode && <Deletbox onDelete={confirmDelete} onCancel={cancelDelete} />}
-      
+      <OptionBTNs 
+        onAddMode={() => { 
+          setAddMode(true);
+          setDeleteMode(false);
+          setSelectedItems([]); 
+        }}
+        onDeleteMode={() => {
+          setDeleteMode(true);
+          setAddMode(false);
+          setSelectedItems([]);
+        }}
+      />
+      {(deleteMode || addMode) && (
+        <ActionBox 
+          onAction={addMode ? confirmAdd : confirmDelete}
+          onCancel={cancelAction}
+          mode={addMode ? "add" : "delete"}
+        />
+      )}
       {showSafetyDialog && (
         <SafetyDialog
-          yesBtnText="Löschen"
-          saeftyQuestion="Möchten Sie diese Rezepte wirklich löschen?"
-          
-          yesBtn={() => { handleDelete(); setShowSafetyDialog(false); }}
-          
-          noBtn={() => setShowSafetyDialog(false)}
-          
-          stylyesbtn={{ backgroundColor: Colors.reddelet }}
+          yesBtnText={addMode ? "Hinzufügen" : "Löschen"}
+          saeftyQuestion={
+            addMode 
+              ? "Möchten Sie diese Rezepte in Einkaufsliste Hinzufügen?" 
+              : "Möchten Sie diese Rezepte wirklich löschen?"
+          }
+          yesBtn={() => {
+            if (addMode) {
+              addRecipesToShoppingList();
+            } else {
+              handleDelete();
+            }
+            setShowSafetyDialog(false);
+          }}
+          noBtn={() => {
+            setShowSafetyDialog(false);
+            cancelAction();
+          }}
+          stylyesbtn={{ backgroundColor: addMode ? Colors.greencheck : Colors.reddelet }}
         />
       )}
     </View>
   );
 }
 
-function RecipsCard({ recipe, deleteMode, selectedItems, toggleSelection }) {
+function RecipsCard({ recipe, deleteMode, addMode, selectedItems, toggleSelection }) {
   return (
     <View style={style.recipCont}>
       <View style={style.nameCont}>
-        {deleteMode && (
-          <MyCheck
+        {(deleteMode || addMode) && (
+          <MyCheck 
             isSelected={selectedItems.includes(recipe.id)}
             toggle={() => toggleSelection(recipe.id)}
-            deleteMode={deleteMode}
+            mode={deleteMode ? "delete" : "add"}
           />
         )}
         <Text style={style.recipName1}>{recipe.recipeName}</Text>
@@ -183,11 +281,11 @@ function RecipsCard({ recipe, deleteMode, selectedItems, toggleSelection }) {
   );
 }
 
-function OptionBTNs({ onDeleteMode }) {
+function OptionBTNs({ onAddMode, onDeleteMode }) {
   return (
     <View style={style.optionBTNs}>
       <View style={style.CardnDel}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={onAddMode}>
           <Image source={require("../assets/img/card.png")} style={style.cardDel} />
         </TouchableOpacity>
         <View style={style.sepv} />
@@ -200,14 +298,14 @@ function OptionBTNs({ onDeleteMode }) {
   );
 }
 
-function MyCheck({ isSelected, toggle, deleteMode }) {
+function MyCheck({ isSelected, toggle, mode }) {
   return (
     <TouchableOpacity onPress={toggle} style={style.myCheck}>
       {isSelected && (
         <View
           style={[
             style.myChecked,
-            deleteMode && { backgroundColor: Colors.reddelet }
+            { backgroundColor: mode === "delete" ? Colors.reddelet : Colors.greencheck }
           ]}
         />
       )}
@@ -215,11 +313,13 @@ function MyCheck({ isSelected, toggle, deleteMode }) {
   );
 }
 
-function Deletbox({ onDelete, onCancel }) {
+function ActionBox({ onAction, onCancel, mode }) {
+  const btnText = mode === "add" ? "Hinzufügen" : "Löschen";
+  const btnStyle = mode === "add" ? { backgroundColor: Colors.greencheck } : { backgroundColor: Colors.reddelet };
   return (
     <View style={style.mainDel}>
-      <TouchableOpacity onPress={onDelete} style={style.deletbb}>
-        <Text style={style.cancelDeltext}>Löschen</Text>
+      <TouchableOpacity onPress={onAction} style={[style.deletbb, btnStyle]}>
+        <Text style={style.cancelDeltext}>{btnText}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={onCancel} style={style.dondel}>
         <Text style={style.cancelDeltext}>Abbrechen</Text>
@@ -231,7 +331,7 @@ function Deletbox({ onDelete, onCancel }) {
 const style = StyleSheet.create({
   mainCont: {
     flex: 1,
-    backgroundColor: Colors.backgroundbgrey,
+    backgroundColor: Colors.backgroundbgrey
   },
   serchc: {},
   recipCont: {
@@ -242,61 +342,61 @@ const style = StyleSheet.create({
     width: "100%",
     borderRadius: 25,
     overflow: "hidden",
-    marginBottom: 15,
+    marginBottom: 15
   },
   nameCont: {
     marginTop: 5,
     marginBottom: 6,
     justifyContent: "center",
-    flexDirection: "row",
+    flexDirection: "row"
   },
   recipName1: {
     fontSize: 22,
     color: Colors.whitedarl,
     fontFamily: "monospace",
-    marginTop: "2%",
+    marginTop: "2%"
   },
   seph: {
     backgroundColor: Colors.whitedarl,
     width: 350,
     height: 2,
-    marginLeft: "5%",
+    marginLeft: "5%"
   },
   ingredientText: {
     fontSize: 20,
     color: Colors.whitedarl,
-    fontFamily: "monospace",
+    fontFamily: "monospace"
   },
   ingredients: {
     fontSize: 19,
     color: Colors.textwhite,
     letterSpacing: 1,
-    marginLeft: 12,
+    marginLeft: 12
   },
   ingredientCont: {
     flexDirection: "row",
     justifyContent: "center",
     maxHeight: 90,
-    overflow: "hidden",
+    overflow: "hidden"
   },
   ingredientItem: {
-    paddingVertical: 1, 
+    paddingVertical: 1
   },
   seeMoreButton: {
     alignSelf: "flex-end",
     marginTop: 8,
     marginRight: 25,
-    marginBottom: 5,
+    marginBottom: 5
   },
   seeMoreText: {
     fontSize: 18,
     color: Colors.whitedarl,
     textDecorationLine: "underline",
-    letterSpacing: 1,
+    letterSpacing: 1
   },
   flatList: {
     marginBottom: 2,
-    marginTop: 75,
+    marginTop: 75
   },
   optionBTNs: {
     backgroundColor: Colors.primary,
@@ -304,28 +404,28 @@ const style = StyleSheet.create({
     height: 120,
     borderRadius: 35,
     borderColor: Colors.primarylight,
-    borderWidth: 2,
+    borderWidth: 2
   },
   sepbtn: {
     width: "100%",
     height: 2,
     backgroundColor: Colors.whitedarl,
-    top: 20,
+    top: 20
   },
   CardnDel: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginHorizontal: 90,
-    marginTop: 10,
+    marginTop: 10
   },
   cardDel: {
     width: 40,
-    height: 50,
+    height: 50
   },
   sepv: {
     width: 3,
     height: 50,
-    backgroundColor: Colors.whitedarl,
+    backgroundColor: Colors.whitedarl
   },
   myCheck: {
     position: "absolute",
@@ -338,7 +438,7 @@ const style = StyleSheet.create({
     borderColor: Colors.textwhite,
     borderWidth: 1,
     left: 12,
-    top: 7,
+    top: 7
   },
   myChecked: {
     textAlign: "center",
@@ -346,7 +446,7 @@ const style = StyleSheet.create({
     width: "100%",
     backgroundColor: Colors.greencheck,
     height: "100%",
-    borderRadius: 5,
+    borderRadius: 5
   },
   mainDel: {
     position: "absolute",
@@ -359,7 +459,7 @@ const style = StyleSheet.create({
     borderColor: Colors.primary,
     borderTopRightRadius: 35,
     borderTopLeftRadius: 35,
-    borderWidth: 5,
+    borderWidth: 5
   },
   deletbb: {
     backgroundColor: Colors.reddelet,
@@ -368,7 +468,7 @@ const style = StyleSheet.create({
     borderRightWidth: 2,
     borderColor: Colors.primary,
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
   },
   dondel: {
     backgroundColor: Colors.bblack,
@@ -377,13 +477,13 @@ const style = StyleSheet.create({
     borderLeftWidth: 2,
     borderColor: Colors.primary,
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
   },
   cancelDeltext: {
     color: Colors.textwhite,
     fontFamily: "monospace",
-    fontSize: 25,
-  },
+    fontSize: 25
+  }
 });
 
 export default SavedRecips;
