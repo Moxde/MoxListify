@@ -363,7 +363,8 @@ const style = StyleSheet.create({
     width: "100%",
     borderRadius: 25,
     overflow: "hidden",
-    marginBottom: 15
+    marginBottom: 15,
+    
   },
   nameCont: {
     marginTop: 5,
@@ -425,7 +426,8 @@ const style = StyleSheet.create({
     height: 120,
     borderRadius: 35,
     borderColor: Colors.primarylight,
-    borderWidth: 2
+    borderWidth: 2,
+    
   },
   sepbtn: {
     width: "100%",
@@ -459,7 +461,8 @@ const style = StyleSheet.create({
     borderColor: Colors.textwhite,
     borderWidth: 1,
     left: 12,
-    top: 7
+    top: 7,
+    
   },
   myChecked: {
     textAlign: "center",
@@ -489,7 +492,8 @@ const style = StyleSheet.create({
     borderRightWidth: 2,
     borderColor: Colors.primary,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
+    
   },
   dondel: {
     backgroundColor: Colors.bblack,

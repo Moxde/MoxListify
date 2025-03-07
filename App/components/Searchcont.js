@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 15,
     alignItems: 'center',
+    
   },
   searchlogo: {
     height: 30,
@@ -83,6 +84,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.textwhite,
     padding: 10,
+    letterSpacing:4
   },
 });
 

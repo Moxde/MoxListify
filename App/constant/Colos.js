@@ -12,7 +12,8 @@ const Colors ={
     greencheck:"#00A000",
     reddelet:"#FF0000",
     transpertblc:"rgba(31, 31, 31, 0.6)",
-    Primarytransf:" rgb(34, 19, 111)",
+    Primarytransf:" rgba(45, 30, 121, 0.53)",
+    reddark:"#941010"
 
 }
 
