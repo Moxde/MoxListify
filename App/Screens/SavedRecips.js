@@ -3,6 +3,7 @@ import { View, StyleSheet, FlatList, Text, TouchableOpacity, Image } from 'react
 import Colors from '../constant/Colos';
 import Searchcont from '../components/Searchcont';
 import SafetyDialog from '../components/SafetyDialog';
+import AlertDialog from '../components/AlertDialog';
 import { open } from 'react-native-quick-sqlite';
 
 const db = open({
@@ -95,6 +96,7 @@ function SavedRecips() {
   const [addMode, setAddMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [showSafetyDialog, setShowSafetyDialog] = useState(false);
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
 
   const toggleSelection = (id) => {
     setSelectedItems(prev =>
@@ -115,11 +117,19 @@ function SavedRecips() {
   };
 
   const confirmDelete = () => {
-    setShowSafetyDialog(true);
+    if (selectedItems.length === 0) {
+      setShowAlertDialog(true);
+    } else {
+      setShowSafetyDialog(true);
+    }
   };
 
   const confirmAdd = () => {
-    setShowSafetyDialog(true);
+    if (selectedItems.length === 0) {
+      setShowAlertDialog(true);
+    } else {
+      setShowSafetyDialog(true);
+    }
   };
 
   const addRecipesToShoppingList = () => {
@@ -242,6 +252,13 @@ function SavedRecips() {
           stylyesbtn={{ backgroundColor: addMode ? Colors.greencheck : Colors.reddelet }}
         />
       )}
+
+      {showAlertDialog && (
+        <AlertDialog 
+        yesBtn={() => { setShowAlertDialog(false); }}
+        dialogtext="Sie müssen mindestens 1 Rezept wählen" 
+        />
+        )}
     </View>
   );
 }

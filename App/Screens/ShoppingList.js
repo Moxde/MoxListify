@@ -1,19 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  Image, 
-  TouchableOpacity, 
-  Alert, 
-  ScrollView, 
-  Text, 
-  TextInput 
-} from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity, Alert, ScrollView, Text, TextInput } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Colors from '../constant/Colos';
 import Searchcont from '../components/Searchcont';
-import SafetyDialog from '../components/SafetyDialog'; 
+import SafetyDialog from '../components/SafetyDialog';
 import { open } from 'react-native-quick-sqlite';
+import AlertDialog from '../components/AlertDialog';
 
 const db = open({
   name: 'shopping.db',
@@ -28,14 +20,11 @@ function ShoppingList() {
   const [checkedItems, setCheckedItems] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [editItemId, setEditItemId] = useState(null);
-
   const [showSafetyDialog, setShowSafetyDialog] = useState(false);
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
 
   useEffect(() => {
-    db.execute(
-      'CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, amount REAL);'
-    );
-    
+    db.execute('CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, amount REAL);');
     const result = db.execute("PRAGMA table_info(items)");
     const columns = result.rows._array;
     const unitExists = columns.some(col => col.name === 'unit');
@@ -46,7 +35,6 @@ function ShoppingList() {
         Alert.alert("Migration Fehler", "Konnte die Spalte 'unit' nicht hinzufügen.");
       }
     }
-    
     const { rows } = db.execute('SELECT * FROM items');
     setDatabase(rows._array);
   }, []);
@@ -96,9 +84,12 @@ function ShoppingList() {
     }
   };
 
-  
   const confirmDelete = () => {
-    setShowSafetyDialog(true);
+    if (checkedItems.length === 0) {
+      setShowAlertDialog(true);
+    } else {
+      setShowSafetyDialog(true);
+    }
   };
 
   return (
@@ -120,7 +111,6 @@ function ShoppingList() {
         activateDeletion={activateDeletion} 
         cancelDeletion={cancelDeletion}
         deleteOn={deleteOn} 
-       
         deleteSelectedItems={confirmDelete}
         editMode={editMode}
         setEditMode={setEditMode}
@@ -130,18 +120,20 @@ function ShoppingList() {
         setCheckOn={setCheckOn}
         loadItems={loadItems}
       />
-      
       {showSafetyDialog && (
         <SafetyDialog
           yesBtnText="Löschen"
           saeftyQuestion="Möchten Sie diese Artikel wirklich löschen?"
-          
           yesBtn={() => { deleteSelectedItems(); setShowSafetyDialog(false); }}
-          
           noBtn={() => setShowSafetyDialog(false)}
-          
           stylyesbtn={{ backgroundColor: Colors.reddelet }}
         />
+      )}
+      {showAlertDialog && (
+        <AlertDialog 
+          yesBtn={() => { setShowAlertDialog(false); }}
+          dialogtext="Sie müssen mindestens 1 Artikel wählen" 
+          />
       )}
     </View>
   );
@@ -152,6 +144,7 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
   const [newItemName, setNewItemName] = useState('');
   const [newItemAmount, setNewItemAmount] = useState('');
   const [newItemUnit, setNewItemUnit] = useState('KG');
+  
 
   useEffect(() => {
     if (editMode && editItemId !== null) {
@@ -170,7 +163,6 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
       Alert.alert('Bitte füllen Sie alle Felder aus!');
       return;
     }
-
     try {
       if (editMode && editItemId !== null) {
         db.execute(
@@ -184,7 +176,6 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
             ? (item.unit === "G" || item.unit === "KG")
             : item.unit === newItemUnit)
         );
-
         if (existingRecord) {
           let updatedAmount;
           let updatedUnit;
@@ -266,11 +257,17 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
           <Image source={require('../assets/img/deletbtn.png')} style={styles.addbtn} />
         </TouchableOpacity>
         <View style={styles.seph} />
-        <TouchableOpacity onPress={() => setEditMode(true)}>
+        <TouchableOpacity onPress={() => {
+          if(editMode) {
+            setEditMode(false);
+            setEditItemId(null);
+          } else {
+            setEditMode(true);
+          }
+        }}>
           <Image source={require('../assets/img/edit.png')} style={styles.addbtn} />
         </TouchableOpacity>
       </View>
-      
       <View style={styles.sepv} />
       {deleteOn && (
         <View style={styles.mainDel}>
@@ -348,7 +345,6 @@ function CardList({ database, checkOn, toggleChecked, checkedItems, deleteOn }) 
       </View>
     ));
   }, [database, checkOn, checkedItems, deleteOn]);  
-
   return <View>{renderedItems}</View>;
 }
 
