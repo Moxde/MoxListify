@@ -21,18 +21,18 @@ function Update() {
             setAppVersion(version);
         };
 
-        // Online-Version und Release-Link abrufen
+        
         const fetchUpdateInfo = async () => {
             try {
-                // GitHub Releases API für neueste Version
+                
                 const response = await fetch('https://api.github.com/repos/Moxde/MoxListify/releases/latest');
                 const data = await response.json();
 
                 if (data && data.tag_name) {
-                    setLatestVersion(data.tag_name); // z.B. v1.0.2
-                    setUpdateDescription(data.body); // Update-Beschreibung
+                    setLatestVersion(data.tag_name); 
+                    setUpdateDescription(data.body); 
                     
-                    // Suche nach dem APK-Asset
+                    
                     const apkAsset = data.assets.find(asset => asset.name === 'app-release.apk');
                     if (apkAsset) {
                         setApkLink(apkAsset.browser_download_url); 
@@ -59,7 +59,7 @@ function Update() {
     const handleDownload = async () => {
         try {
             if (apkLink) {
-                // Versuche, den Link zu öffnen
+                
                 await Linking.openURL(apkLink);
             } else {
                 console.error('Kein APK-Link verfügbar');

@@ -41,7 +41,7 @@ const recipes = [
       { ingredient: "Chicken", quantity: "500", unit: "G" },
       { ingredient: "Flour", quantity: "150", unit: "G" },
       { ingredient: "Oil", quantity: "500", unit: "G" },
-      { ingredient: "Spices", quantity: "to taste", unit: "" },
+      { ingredient: "Spices", quantity: "50", unit: "G" },
       { ingredient: "Garlic Powder", quantity: "1", unit: "EL" },
       { ingredient: "Paprika", quantity: "1", unit: "EL" }
     ]

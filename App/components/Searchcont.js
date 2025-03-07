@@ -11,7 +11,7 @@ function Searchcont({ searchText, setSearchText }) {
           placeholderTextColor={Colors.textwhite}
           style={style.searchin}
           value={searchText}
-          onChangeText={setSearchText} // Direkt State aktualisieren
+          onChangeText={setSearchText} 
         />
         <TouchableOpacity>
           <Image source={require('../assets/img/search.png')} style={style.searchlogo} />
