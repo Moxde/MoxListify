@@ -144,7 +144,8 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
   const [newItemName, setNewItemName] = useState('');
   const [newItemAmount, setNewItemAmount] = useState('');
   const [newItemUnit, setNewItemUnit] = useState('KG');
-  
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
+
 
   useEffect(() => {
     if (editMode && editItemId !== null) {
@@ -160,7 +161,7 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
 
   const handleAddOrUpdateItem = async () => {
     if (!newItemName || !newItemAmount) {
-      Alert.alert('Bitte füllen Sie alle Felder aus!');
+      setShowAlertDialog(true);
       return;
     }
     try {
@@ -279,6 +280,7 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
           </TouchableOpacity>
         </View>
       )}
+      
       {isAdding && (
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -324,6 +326,14 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
           </View>
         </View>
       )}
+      {showAlertDialog && (
+          <AlertDialog 
+            yesBtn={() => setShowAlertDialog(false)}
+            dialogtext="Bitte füllen Sie alle Felder aus!" 
+            styEX={styles.styExx}
+          />
+      )}
+
     </View>
   );
 }
@@ -464,7 +474,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 10,
     width: 300,
-    fontFamily: 'monospace',
+    letterSpacing:1,
     fontSize: 16,
     color: Colors.textwhite,
   },
@@ -481,7 +491,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 10,
     width: '48%',
-    fontFamily: 'monospace',
+    letterSpacing:1,
     fontSize: 16,
     color: Colors.textwhite,
   },
@@ -613,6 +623,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  styExx:{
+      top:-400
+  }
 });
 
 export default ShoppingList;

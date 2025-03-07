@@ -2,9 +2,9 @@ import React from 'react'
 import { View, Text,StyleSheet,TouchableOpacity } from 'react-native'
 import Colors from '../constant/Colos'
 
-function AlertDialog({ yesBtn, dialogtext }) {
+function AlertDialog({ yesBtn, dialogtext, styEX }) {
     return (
-      <View style={styles.alertDialog}>
+      <View style={[styles.alertDialog, styEX]}>
         <View style={styles.alertDialogContent}>
           <Text style={styles.mainText}>
             {dialogtext}
@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
         color:Colors.textwhite,
         textAlign:"center",
         padding:20,
+        fontFamily:"monospace"
     },
     seph:{
         height:3,
@@ -69,12 +70,14 @@ const styles = StyleSheet.create({
         marginHorizontal:2,
         borderColor:Colors.whitedarl,
         borderWidth:2,
-        borderRadius:25
+        borderRadius:25,
+       
     },
     yesbtnText:{
         fontSize:20,
         color:Colors.textwhite,
         textAlign:"center",
+        letterSpacing:1
         
         
     }
