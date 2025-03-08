@@ -143,7 +143,7 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
   const [isAdding, setIsAdding] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemAmount, setNewItemAmount] = useState('');
-  const [newItemUnit, setNewItemUnit] = useState('KG');
+  const [newItemUnit, setNewItemUnit] = useState('');
   const [showAlertDialog, setShowAlertDialog] = useState(false);
 
 
@@ -160,89 +160,99 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
   }, [editMode, editItemId]);
 
   const handleAddOrUpdateItem = async () => {
-    if (!newItemName || !newItemAmount) {
+    if (!newItemName || !newItemAmount || !newItemUnit) {
       setShowAlertDialog(true);
       return;
     }
+    
     try {
       if (editMode && editItemId !== null) {
+        
         db.execute(
           'UPDATE items SET name = ?, amount = ?, unit = ? WHERE id = ?',
-          [newItemName, parseFloat(newItemAmount), newItemUnit, editItemId]
+          [newItemName, parseInputAmount(newItemAmount, newItemUnit), newItemUnit, editItemId]
         );
       } else {
+        
         const existingRecord = database.find(item => 
           item.name.toLowerCase() === newItemName.toLowerCase() && 
-          ((newItemUnit === "G" || newItemUnit === "KG") 
-            ? (item.unit === "G" || item.unit === "KG")
+          ((newItemUnit === "G" || newItemUnit === "KG" || newItemUnit === "ML" || newItemUnit === "L") 
+            ? (item.unit === "G" || item.unit === "KG" || item.unit === "ML" || item.unit === "L")
             : item.unit === newItemUnit)
         );
+  
         if (existingRecord) {
-          let updatedAmount;
-          let updatedUnit;
-          if (newItemUnit === "KG") {
-            let newGrams;
-            if (newItemAmount.includes(',')) {
-              newGrams = parseInt(newItemAmount.split(',')[1], 10);
-            } else {
-              newGrams = parseFloat(newItemAmount) * 1000;
-            }
-            const existingGrams = (existingRecord.unit === "KG" ? existingRecord.amount * 1000 : existingRecord.amount);
-            const totalGrams = existingGrams + newGrams;
-            updatedUnit = "KG";
-            if (totalGrams % 1000 !== 0) {
-              updatedAmount = parseFloat((totalGrams / 1000).toFixed(3));
-            } else {
-              updatedAmount = totalGrams / 1000;
-            }
-          } else if (newItemUnit === "G") {
-            const existingGrams = (existingRecord.unit === "KG" ? existingRecord.amount * 1000 : existingRecord.amount);
-            const newGrams = parseFloat(newItemAmount);
-            const totalGrams = existingGrams + newGrams;
-            if (totalGrams < 1000) {
-              updatedUnit = "G";
-              updatedAmount = totalGrams;
-            } else {
-              updatedUnit = "KG";
-              if (totalGrams % 1000 !== 0) {
-                updatedAmount = parseFloat((totalGrams / 1000).toFixed(3));
-              } else {
-                updatedAmount = totalGrams / 1000;
-              }
-            }
+         
+          let updatedAmount, updatedUnit;
+          const isWeight = ["KG", "G"].includes(existingRecord.unit);
+          const isVolume = ["L", "ML"].includes(existingRecord.unit);
+          
+          
+          const existingInBase = 
+            existingRecord.unit === "KG" ? existingRecord.amount * 1000 :
+            existingRecord.unit === "L" ? existingRecord.amount * 1000 :
+            existingRecord.amount;
+  
+          
+          const newInBase = parseInputToBaseUnits(newItemAmount, newItemUnit);
+  
+          const totalBase = existingInBase + newInBase;
+  
+          
+          if (totalBase >= 1000 && (isWeight || isVolume)) {
+            updatedUnit = isWeight ? "KG" : "L";
+            updatedAmount = parseFloat((totalBase / 1000).toFixed(3));
           } else {
-            updatedUnit = newItemUnit;
-            updatedAmount = existingRecord.amount + parseFloat(newItemAmount);
+            updatedUnit = isWeight ? "G" : "ML";
+            updatedAmount = totalBase;
           }
+  
           db.execute(
             'UPDATE items SET amount = ?, unit = ? WHERE id = ?',
             [updatedAmount, updatedUnit, existingRecord.id]
           );
         } else {
-          let amountInput;
-          if (newItemUnit === "KG") {
-            amountInput = parseFloat(newItemAmount.replace(',', '.'));
-          } else {
-            amountInput = parseFloat(newItemAmount);
-          }
+          
+          const amountInput = parseInputAmount(newItemAmount, newItemUnit);
           db.execute(
             'INSERT INTO items (name, amount, unit) VALUES (?, ?, ?)',
             [newItemName, amountInput, newItemUnit]
           );
         }
       }
+      
       loadItems();
       closeForm();
     } catch (error) {
       Alert.alert('Datenbankfehler');
     }
   };
+  
+  
+  const parseInputToBaseUnits = (amount, unit) => {
+    if (["KG", "L"].includes(unit)) {
+      if (amount.includes(',')) {
+        const [kg, g] = amount.split(',');
+        
+        return parseInt(kg || 0) * 1000 + parseInt((g || "000").padStart(3, '0').slice(0, 3));
+      }
+      return parseFloat(amount.replace(',', '.')) * 1000;
+    }
+    return parseFloat(amount.replace(',', '.'));
+  };
+  
+  const parseInputAmount = (amount, unit) => {
+    const baseUnits = parseInputToBaseUnits(amount, unit);
+    return ["KG", "L"].includes(unit) 
+      ? parseFloat((baseUnits / 1000).toFixed(3))
+      : baseUnits;
+  };
 
   const closeForm = () => {
     setIsAdding(false);
     setNewItemName('');
     setNewItemAmount('');
-    setNewItemUnit('KG');
+    setNewItemUnit('');
     setEditMode(false);
     setEditItemId(null);
   };
@@ -310,10 +320,13 @@ function OptionList({ setDatabase, activateDeletion, cancelDeletion, deleteOn, d
                   style={styles.inputUnit}
                   onValueChange={(itemValue) => setNewItemUnit(itemValue)}
                 >
-                  <Picker.Item label="KG" value="KG" />
-                  <Picker.Item label="G" value="G" />
-                  <Picker.Item label="EL" value="EL" />
-                  <Picker.Item label="St." value="St" />
+                  <Picker.Item label="" value="" />
+                  <Picker.Item label="Kilogramm" value="KG" />
+                  <Picker.Item label="Gramm" value="G" />
+                  <Picker.Item label="Milliliter" value="ML" />
+                  <Picker.Item label="Liter" value="L" />
+                  <Picker.Item label="Esslöffel" value="EL" />
+                  <Picker.Item label="Stück" value="St" />
                 </Picker>
               </View>
             </View>
@@ -494,6 +507,7 @@ const styles = StyleSheet.create({
     letterSpacing:1,
     fontSize: 16,
     color: Colors.textwhite,
+    right: 20,
   },
   inputUnitContainer: {
     height: 70,
@@ -502,15 +516,16 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingHorizontal: 10,
     marginBottom: 10,
-    width: '48%',
+    width: '65%',
     justifyContent: 'center',
+    right: 9,
   },
   inputUnit: {
     height: 70,
     color: Colors.textwhite,
   },
   addItemButton: {
-    backgroundColor: Colors.primarydark,
+    backgroundColor: Colors.greencheck,
     borderRadius: 25,
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -543,20 +558,23 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    backgroundColor: Colors.primarydark,
-    top: 5,
+    backgroundColor: Colors.reddark,
+    marginTop:5,
     right: 10,
     padding: 10,
-    borderRadius: 100,
-    height: 50,
-    width: 50,
+    borderRadius: 25,
+    height: 45,
+    width: 45,
+    justifyContent:"center",
+    alignItems:"center",
   },
   closeButtonText: {
-    fontSize: 30,
+    fontSize: 26,
     color: Colors.textwhite,
     fontWeight: 'bold',
     top: -5,
-    right: -8,
+    
+  
   },
   myCheck: {
     position: 'absolute',

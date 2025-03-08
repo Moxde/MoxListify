@@ -61,7 +61,7 @@ const recipes = [
       { ingredient: "Carrot", quantity: "2", unit: "St" },
       { ingredient: "Broccoli", quantity: "200", unit: "G" },
       { ingredient: "Soy Sauce", quantity: "50", unit: "G" },
-      { ingredient: "Ginger", quantity: "1", unit: "St" },
+      { ingredient: "Flour", quantity: "1,5", unit: "L" },
       { ingredient: "Garlic", quantity: "3", unit: "St" }
     ]
   },
@@ -69,7 +69,7 @@ const recipes = [
     id: 5,
     recipeName: "Chocolate Cake",
     ingredients: [
-      { ingredient: "Flour", quantity: "200", unit: "G" },
+      { ingredient: "Flour", quantity: "1", unit: "ML" },
       { ingredient: "Sugar", quantity: "150", unit: "G" },
       { ingredient: "Cocoa Powder", quantity: "50", unit: "G" },
       { ingredient: "Eggs", quantity: "3", unit: "St" },
@@ -147,54 +147,77 @@ function SavedRecips() {
     cancelAction();
   };
 
+  const parseInputToBaseUnits = (amount, unit) => {
+    if (["KG", "L"].includes(unit)) {
+      if (amount.includes(',')) {
+        const [main, fraction] = amount.split(',');
+        return parseInt(main || 0) * 1000 + parseInt((fraction || "000").padStart(3, '0').slice(0, 3));
+      }
+      return parseFloat(amount.replace(',', '.')) * 1000;
+    }
+    return parseFloat(amount.replace(',', '.'));
+  };
+  
+  const parseInputAmount = (amount, unit) => {
+    const baseUnits = parseInputToBaseUnits(amount, unit);
+    return ["KG", "L"].includes(unit)
+      ? parseFloat((baseUnits / 1000).toFixed(3))
+      : baseUnits;
+  };
+  
+  
   const addOrUpdateIngredient = (ingredient) => {
-    const result = db.execute('SELECT * FROM items WHERE lower(name) = ?', [ingredient.ingredient.toLowerCase()]);
+    const result = db.execute(
+      'SELECT * FROM items WHERE lower(name) = ?',
+      [ingredient.ingredient.toLowerCase()]
+    );
     const rows = result.rows._array;
+    
     if (rows && rows.length > 0) {
+      
       let existingRecord = rows.find(item => {
-        if (ingredient.unit === "G" || ingredient.unit === "KG") {
-          return (item.unit === "G" || item.unit === "KG");
+        if (["G", "KG"].includes(ingredient.unit)) {
+          return item.unit === "G" || item.unit === "KG";
+        } else if (["L", "ML"].includes(ingredient.unit)) {
+          return item.unit === "L" || item.unit === "ML";
         } else {
           return item.unit === ingredient.unit;
         }
       });
       if (existingRecord) {
         let updatedAmount, updatedUnit;
-        if (ingredient.unit === "KG") {
-          let newGrams = ingredient.quantity.toString().includes(',') 
-            ? parseInt(ingredient.quantity.split(',')[1], 10) 
-            : parseFloat(ingredient.quantity) * 1000;
-          const existingGrams = (existingRecord.unit === "KG" ? existingRecord.amount * 1000 : existingRecord.amount);
-          const totalGrams = existingGrams + newGrams;
-          updatedUnit = "KG";
-          updatedAmount = totalGrams % 1000 !== 0 
-            ? parseFloat((totalGrams / 1000).toFixed(3))
-            : totalGrams / 1000;
-        } else if (ingredient.unit === "G") {
-          const existingGrams = (existingRecord.unit === "KG" ? existingRecord.amount * 1000 : existingRecord.amount);
-          const newGrams = parseFloat(ingredient.quantity);
-          const totalGrams = existingGrams + newGrams;
-          if (totalGrams < 1000) {
-            updatedUnit = "G";
-            updatedAmount = totalGrams;
-          } else {
-            updatedUnit = "KG";
-            updatedAmount = totalGrams % 1000 !== 0 
-              ? parseFloat((totalGrams / 1000).toFixed(3))
-              : totalGrams / 1000;
-          }
+        const isWeight = ["KG", "G"].includes(existingRecord.unit);
+        const isVolume = ["L", "ML"].includes(existingRecord.unit);
+        
+        
+        const existingInBase = (existingRecord.unit === "KG" || existingRecord.unit === "L")
+          ? existingRecord.amount * 1000
+          : existingRecord.amount;
+        
+        
+        const newInBase = parseInputToBaseUnits(ingredient.quantity, ingredient.unit);
+        const totalBase = existingInBase + newInBase;
+        
+        if (totalBase >= 1000 && (isWeight || isVolume)) {
+          updatedUnit = isWeight ? "KG" : "L";
+          updatedAmount = parseFloat((totalBase / 1000).toFixed(3));
         } else {
-          updatedUnit = ingredient.unit;
-          updatedAmount = existingRecord.amount + parseFloat(ingredient.quantity);
+          updatedUnit = isWeight ? "G" : (isVolume ? "ML" : ingredient.unit);
+          updatedAmount = totalBase;
         }
-        db.execute('UPDATE items SET amount = ?, unit = ? WHERE id = ?', [updatedAmount, updatedUnit, existingRecord.id]);
+        db.execute(
+          'UPDATE items SET amount = ?, unit = ? WHERE id = ?',
+          [updatedAmount, updatedUnit, existingRecord.id]
+        );
         return;
       }
     }
-    let amountInput = ingredient.unit === "KG" 
-      ? parseFloat(ingredient.quantity.toString().replace(',', '.')) 
-      : parseFloat(ingredient.quantity);
-    db.execute('INSERT INTO items (name, amount, unit) VALUES (?, ?, ?)', [ingredient.ingredient, amountInput, ingredient.unit]);
+    
+    let amountInput = parseInputAmount(ingredient.quantity, ingredient.unit);
+    db.execute(
+      'INSERT INTO items (name, amount, unit) VALUES (?, ?, ?)',
+      [ingredient.ingredient, amountInput, ingredient.unit]
+    );
   };
 
   return (
