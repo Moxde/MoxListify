@@ -6,6 +6,8 @@ import Searchcont from '../components/Searchcont';
 import SafetyDialog from '../components/SafetyDialog';
 import { open } from 'react-native-quick-sqlite';
 import AlertDialog from '../components/AlertDialog';
+import SuccessAnimation from '../components/SuccessAnimation';
+
 
 const db = open({
   name: 'shopping.db',
@@ -22,6 +24,8 @@ function ShoppingList() {
   const [editItemId, setEditItemId] = useState(null);
   const [showSafetyDialog, setShowSafetyDialog] = useState(false);
   const [showAlertDialog, setShowAlertDialog] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  
 
   useEffect(() => {
     db.execute('CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, amount REAL);');
@@ -69,6 +73,8 @@ function ShoppingList() {
       });
       loadItems();
       cancelDeletion();
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 1500);
     } catch (error) {
       Alert.alert('Fehler beim Löschen');
     }
@@ -94,8 +100,15 @@ function ShoppingList() {
 
   return (
     <View style={styles.mainCont}>
+      
       <Searchcont searchText={searchText} setSearchText={setSearchText} />
       <View style={styles.list}>
+      {database.length === 0 ? (
+          <View style={styles.emptyListContainer}>
+            <Text style={styles.emptyListText}>Einkaufsliste ist leer.</Text>
+            
+          </View>
+        ) : (
         <ScrollView keyboardShouldPersistTaps="handled">
           <CardList 
             database={filteredList} 
@@ -105,6 +118,7 @@ function ShoppingList() {
             deleteOn={deleteOn}  
           />
         </ScrollView>
+         )}
       </View>
       <OptionList 
         setDatabase={setDatabase} 
@@ -135,6 +149,12 @@ function ShoppingList() {
           dialogtext="Sie müssen mindestens 1 Artikel wählen" 
           />
       )}
+      {showSuccess && (
+        <View style={styles.overlay}>
+          <SuccessAnimation />
+          </View>
+          )}
+          
     </View>
   );
 }
@@ -559,7 +579,7 @@ const styles = StyleSheet.create({
   closeButton: {
     position: 'absolute',
     backgroundColor: Colors.reddark,
-    marginTop:5,
+    marginTop:8,
     right: 10,
     padding: 10,
     borderRadius: 25,
@@ -643,7 +663,42 @@ const styles = StyleSheet.create({
   },
   styExx:{
       top:-400
-  }
+  },
+  overlay: {
+    position: 'absolute',
+    top: -120,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent', 
+    },
+    emptyListContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    emptyListText: {
+      fontSize: 20,
+      color: Colors.textwhite,
+      fontFamily: 'monospace',
+    },
+    addReipss:{
+      height: 70,
+      width: 250,
+      backgroundColor: Colors.greencheck,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 25,
+      marginTop: 20,
+      marginBottom: 20
+    },
+    addReipssText: {
+      color: Colors.textwhite,
+      fontSize: 20,
+      fontFamily: "monospace"
+    }
 });
 
 export default ShoppingList;

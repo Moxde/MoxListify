@@ -1,15 +1,46 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Image, TextInput, FlatList } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Colors from '../constant/Colos';
 import AlertDialog from '../components/AlertDialog';
+import { open } from 'react-native-quick-sqlite';
+
+const db = open({
+  name: 'shopping.db',
+  location: 'default'
+});
 
 function Recips() {
   const [showItemBox, setShowItemBox] = useState(false);
   const [ingredients, setIngredients] = useState([]);
+  const [recipeName, setRecipeName] = useState('');
+  const [recipeNameConfirmed, setRecipeNameConfirmed] = useState(false);
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
 
-  const addIngredient = (newIngredient) => {
-    setIngredients(prev => [...prev, newIngredient]);
+  
+  useEffect(() => {
+    db.execute('CREATE TABLE IF NOT EXISTS recipes (id TEXT PRIMARY KEY, recipeName TEXT)');
+    db.execute('CREATE TABLE IF NOT EXISTS recipeIngredients (id INTEGER PRIMARY KEY AUTOINCREMENT, recipeId TEXT, ingredient TEXT, quantity TEXT, unit TEXT)');
+  }, []);
+
+  
+  const handleAddRecipe = () => {
+    if (recipeName.trim() === '' || ingredients.length === 0) {
+      setShowAlertDialog(true);
+      return;
+    }
+    const id = Date.now().toString();
+    db.execute('INSERT INTO recipes (id, recipeName) VALUES (?, ?)', [id, recipeName]);
+    ingredients.forEach(ing => {
+      db.execute(
+        'INSERT INTO recipeIngredients (recipeId, ingredient, quantity, unit) VALUES (?, ?, ?, ?)',
+        [id, ing.ingredient, ing.quantity, ing.unit]
+      );
+    });
+    
+    setRecipeName('');
+    setRecipeNameConfirmed(false);
+    setIngredients([]);
   };
 
   return (
@@ -18,21 +49,32 @@ function Recips() {
         setShowItemBox={setShowItemBox}
         ingredients={ingredients}
         setIngredients={setIngredients}
+        recipeName={recipeName}
+        setRecipeName={setRecipeName}
+        recipeNameConfirmed={recipeNameConfirmed}
+        setRecipeNameConfirmed={setRecipeNameConfirmed}
       />
+      <TouchableOpacity style={style.addRecips} onPress={handleAddRecipe}>
+        <Text style={style.addRecipsText}>Rezept hinzufügen</Text>
+      </TouchableOpacity>
       {showItemBox && (
         <Itembox
           handleClose={() => setShowItemBox(false)}
-          onAddIngredient={addIngredient}
+          onAddIngredient={(ing) => setIngredients(prev => [...prev, ing])}
+        />
+      )}
+      {showAlertDialog && (
+        <AlertDialog
+          yesBtn={() => setShowAlertDialog(false)}
+          dialogtext="Bitte füllen Sie den Rezeptnamen aus und fügen Sie mindestens eine Zutat hinzu!"
         />
       )}
     </View>
   );
 }
 
-function RecipesAndIngredientDisplay({ setShowItemBox, ingredients, setIngredients }) {
-  const [text, setText] = useState('');
+function RecipesAndIngredientDisplay({ setShowItemBox, ingredients, setIngredients, recipeName, setRecipeName, recipeNameConfirmed, setRecipeNameConfirmed }) {
   const [active, setActive] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
   const textInputRef = useRef(null);
 
   const handleActivate = () => {
@@ -45,32 +87,32 @@ function RecipesAndIngredientDisplay({ setShowItemBox, ingredients, setIngredien
   };
 
   const handleSubmit = () => {
-    if (text.trim() !== '') {
-      setConfirmed(true);
+    if (recipeName.trim() !== '') {
+      setRecipeNameConfirmed(true);
       setActive(false);
     }
   };
 
   const handleClear = () => {
-    setText('');
-    setConfirmed(false);
+    setRecipeName('');
+    setRecipeNameConfirmed(false);
     setActive(false);
   };
 
   return (
     <View style={style.displaycont}>
-      <View style={[style.reciepDisplayCont, confirmed && { backgroundColor: Colors.transpertblc }]}>
+      <View style={[style.reciepDisplayCont, recipeNameConfirmed && { backgroundColor: Colors.transpertblc }]}>
         <TextInput
           ref={textInputRef}
           style={style.reciepName}
           placeholder="Name des Rezepts eintragen:"
           placeholderTextColor={Colors.whitedarl}
-          value={text}
-          onChangeText={setText}
+          value={recipeName}
+          onChangeText={setRecipeName}
           onSubmitEditing={handleSubmit}
           editable={active}
         />
-        {confirmed ? (
+        {recipeNameConfirmed ? (
           <TouchableOpacity style={style.btncont} onPress={handleClear}>
             <Image source={require('../assets/img/x1btn.png')} style={style.btn} />
           </TouchableOpacity>
@@ -82,28 +124,25 @@ function RecipesAndIngredientDisplay({ setShowItemBox, ingredients, setIngredien
       </View>
       <View style={style.ingredienDisplayCont}>
         <Text style={style.ingredienText}>Zutaten:</Text>
-      <FlatList
-        data={ingredients}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={style.ingredientItemContainer}>
-            <Text style={style.ingredientItemText}>
-              {item.ingredient} 
-            </Text>
-            <Text style={style.ingredientItemText}>
-            {item.quantity} {item.unit}
-            </Text>
-            <TouchableOpacity
-              style={style.ingredientItemBtnCont}
-              onPress={() => setIngredients(prev => prev.filter(i => i.id !== item.id))}
-            >
-              <Image source={require('../assets/img/x1btn.png')} style={style.ingredientItemBtn} />
-            </TouchableOpacity>
-          </View>
-        )}
-        style={style.ingredientList}
-      />
-      
+        <FlatList
+          data={ingredients}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={style.ingredientItemContainer}>
+              <Text style={style.ingredientItemText}>{item.ingredient}</Text>
+              <Text style={style.ingredientItemText}>
+                {item.quantity} {item.unit}
+              </Text>
+              <TouchableOpacity
+                style={style.ingredientItemBtnCont}
+                onPress={() => setIngredients(prev => prev.filter(i => i.id !== item.id))}
+              >
+                <Image source={require('../assets/img/x1btn.png')} style={style.ingredientItemBtn} />
+              </TouchableOpacity>
+            </View>
+          )}
+          style={style.ingredientList}
+        />
         <TouchableOpacity style={style.ingredienAdd} onPress={() => setShowItemBox(true)}>
           <Image source={require('../assets/img/addbtn.png')} style={style.ingredienAddbtn} />
         </TouchableOpacity>
@@ -149,18 +188,21 @@ function Itembox({ handleClose, onAddIngredient }) {
             value={ingredientName}
             onChangeText={setIngredientName}
           />
-         
         </View>
         <View style={style.itemboxcontInputrow}>
-          <TextInput
-            style={style.itemboxnamed}
-            placeholder="Menge"
-            placeholderTextColor={Colors.whitedarl}
-            value={quantity}
-            onChangeText={setQuantity}
-            keyboardType="numeric"
-            onSubmitEditing={handleAdd}
-        />
+            <TextInput
+              style={style.itemboxnamed}
+              placeholder="Menge"
+              placeholderTextColor={Colors.whitedarl}
+              value={quantity}
+              onChangeText={(text) => {
+              let numericText = text.replace(/[^0-9]/g, '');
+              numericText = numericText.replace(/^0+/, '');
+              setQuantity(numericText);
+              }}  
+              keyboardType="numeric"
+              onSubmitEditing={handleAdd}
+            />
           <View style={style.inputUnitContainer}>
             <Picker
               selectedValue={selectedUnit}
@@ -176,7 +218,7 @@ function Itembox({ handleClose, onAddIngredient }) {
               <Picker.Item label="Stück" value="St" />
             </Picker>
           </View>
-          </View>
+        </View>
         <View style={style.seph} />
         <TouchableOpacity style={style.itemboxaddbtn} onPress={handleAdd}>
           <Text style={style.itemboxaddtext}>Hinzufügen</Text>
@@ -196,6 +238,8 @@ const style = StyleSheet.create({
   mainCont: {
     flex: 1,
     backgroundColor: Colors.backgroundbgrey,
+    justifyContent: "center",
+    alignItems: "center",
   },
   displaycont: {
     height: "60%",
@@ -205,7 +249,7 @@ const style = StyleSheet.create({
     position: "absolute",
     height: "18%",
     width: "94%",
-    marginTop: 15,
+    marginTop: -30,
     borderRadius: 25,
     borderColor: Colors.primary,
     borderWidth: 4,
@@ -253,7 +297,7 @@ const style = StyleSheet.create({
     minHeight: "99%",
     maxHeight: "100%",
     width: "94%",
-    marginTop: 40,
+    marginTop: -1,
     borderRadius: 25,
     borderColor: Colors.primary,
     borderWidth: 4,
@@ -293,7 +337,6 @@ const style = StyleSheet.create({
   },
   ingredientItemText: {
     fontSize: 25,
-    
     color: Colors.textwhite,
     letterSpacing: 2,
   },
@@ -319,29 +362,6 @@ const style = StyleSheet.create({
     borderWidth: 2,
     borderStyle: "dashed",
   },
-  displaycont: {
-    height: "60%",
-    alignItems: "center",
-  },
-  ingredienList: {
-    
-  },
-  closeContBtn: {
-    position: "absolute",
-    left: "86%",
-    top: 9,
-    backgroundColor: Colors.reddark,
-    height: 30,
-    width: 30,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  closeContText: {
-    fontSize: 20,
-    textAlign: "center",
-    color: Colors.whitedarl,
-  },
   itembox: {
     position: "absolute",
     width: "100%",
@@ -364,8 +384,6 @@ const style = StyleSheet.create({
     marginTop: 30,
     flexDirection: "row",
     justifyContent: "space-between",
-    
-    
   },
   itemboxname: {
     fontSize: 18,
@@ -402,13 +420,11 @@ const style = StyleSheet.create({
     borderColor: Colors.whitedarl,
     borderWidth: 2,
     marginTop:15,
-
   },
-  itemboxcontInputrow :{
+  itemboxcontInputrow: {
     flexDirection:"row",
     justifyContent:"space-between",
     marginHorizontal:-20
-
   },
   inputUnit: {
     fontSize: 15,
@@ -433,6 +449,44 @@ const style = StyleSheet.create({
     color: Colors.textwhite,
     textAlign: "center",
   },
+  addRecips:{
+    height: 75,
+    width: 250,
+    backgroundColor: Colors.greencheck,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 90,
+  },
+  addRecipsText:{
+    fontSize: 20,
+    color: Colors.textwhite,
+    textAlign: "center",
+    fontFamily: "monospace",
+  },
+  displaycont: {
+    height: "60%",
+    alignItems: "center",
+  },
+  ingredienList: {
+    
+  },
+  closeContBtn: {
+    position: "absolute",
+    left: "86%",
+    top: 9,
+    backgroundColor: Colors.reddark,
+    height: 30,
+    width: 30,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  closeContText: {
+    fontSize: 20,
+    textAlign: "center",
+    color: Colors.whitedarl,
+  }
 });
 
 export default Recips;

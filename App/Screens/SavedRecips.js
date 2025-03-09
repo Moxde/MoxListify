@@ -1,103 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, Text, TouchableOpacity, Image } from 'react-native';
 import Colors from '../constant/Colos';
 import Searchcont from '../components/Searchcont';
 import SafetyDialog from '../components/SafetyDialog';
 import AlertDialog from '../components/AlertDialog';
 import { open } from 'react-native-quick-sqlite';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
+import SuccessAnimation from '../components/SuccessAnimation';
 
 const db = open({
   name: 'shopping.db',
   location: 'default'
 });
 
-const recipes = [
-  {
-    id: 1,
-    recipeName: "Pasta Salad",
-    ingredients: [
-      { ingredient: "Tomato", quantity: "2", unit: "St" },
-      { ingredient: "Cucumber", quantity: "1", unit: "St" },
-      { ingredient: "Olives", quantity: "50", unit: "G" },
-      { ingredient: "Onion", quantity: "1", unit: "St" },
-      { ingredient: "Feta Cheese", quantity: "100", unit: "G" },
-      { ingredient: "Feta Cheese", quantity: "10", unit: "G" },
-      { ingredient: "Feta Cheese", quantity: "50", unit: "G" },
-      { ingredient: "Feta Cheese", quantity: "60", unit: "G" },
-      { ingredient: "Feta Cheese", quantity: "20", unit: "G" },
-      { ingredient: "Feta Cheese", quantity: "100", unit: "G" },
-      { ingredient: "Feta Cheese", quantity: "100", unit: "G" }
-    ]
-  },
-  {
-    id: 2,
-    recipeName: "Apple Pie",
-    ingredients: [
-      { ingredient: "Apple", quantity: "4", unit: "St" },
-      { ingredient: "Flour", quantity: "2", unit: "KG" },
-      { ingredient: "Sugar", quantity: "150", unit: "G" },
-      { ingredient: "Butter", quantity: "100", unit: "G" },
-      { ingredient: "Cinnamon", quantity: "1", unit: "EL" },
-      { ingredient: "Lemon Juice", quantity: "2", unit: "EL" }
-    ]
-  },
-  {
-    id: 3,
-    recipeName: "Fried Chicken",
-    ingredients: [
-      { ingredient: "Chicken", quantity: "500", unit: "G" },
-      { ingredient: "Flour", quantity: "150", unit: "G" },
-      { ingredient: "Oil", quantity: "500", unit: "G" },
-      { ingredient: "Spices", quantity: "50", unit: "G" },
-      { ingredient: "Garlic Powder", quantity: "1", unit: "EL" },
-      { ingredient: "Paprika", quantity: "1", unit: "EL" }
-    ]
-  },
-  {
-    id: 4,
-    recipeName: "Vegetable Stir Fry",
-    ingredients: [
-      { ingredient: "Bell Pepper", quantity: "2", unit: "St" },
-      { ingredient: "Carrot", quantity: "2", unit: "St" },
-      { ingredient: "Broccoli", quantity: "200", unit: "G" },
-      { ingredient: "Soy Sauce", quantity: "50", unit: "G" },
-      { ingredient: "Flour", quantity: "1,5", unit: "L" },
-      { ingredient: "Garlic", quantity: "3", unit: "St" }
-    ]
-  },
-  {
-    id: 5,
-    recipeName: "Chocolate Cake",
-    ingredients: [
-      { ingredient: "Flour", quantity: "1", unit: "ML" },
-      { ingredient: "Sugar", quantity: "150", unit: "G" },
-      { ingredient: "Cocoa Powder", quantity: "50", unit: "G" },
-      { ingredient: "Eggs", quantity: "3", unit: "St" },
-      { ingredient: "Butter", quantity: "150", unit: "G" },
-      { ingredient: "Vanilla Extract", quantity: "1", unit: "EL" }
-    ]
-  },
-  {
-    id: 6,
-    recipeName: "Caesar Salad",
-    ingredients: [
-      { ingredient: "Lettuce", quantity: "200", unit: "G" },
-      { ingredient: "Croutons", quantity: "50", unit: "G" },
-      { ingredient: "Parmesan Cheese", quantity: "30", unit: "G" },
-      { ingredient: "Caesar Dressing", quantity: "3", unit: "EL" },
-      { ingredient: "Chicken Breast", quantity: "200", unit: "G" }
-    ]
-  }
-];
-
 function SavedRecips() {
-  const [recipeList, setRecipeList] = useState(recipes);
+  const [recipeList, setRecipeList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [deleteMode, setDeleteMode] = useState(false);
   const [addMode, setAddMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [showSafetyDialog, setShowSafetyDialog] = useState(false);
   const [showAlertDialog, setShowAlertDialog] = useState(false);
+  const navigation = useNavigation();
+  const isFocused = useIsFocused(); 
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const loadRecipes = () => {
+    const recipeResults = db.execute('SELECT * FROM recipes');
+    const recipeRows = recipeResults.rows._array;
+    const recipesData = recipeRows.map(recipe => ({ ...recipe, ingredients: [] }));
+    recipesData.forEach(recipe => {
+      const ingResults = db.execute('SELECT ingredient, quantity, unit FROM recipeIngredients WHERE recipeId = ?', [recipe.id]);
+      recipe.ingredients = ingResults.rows._array;
+    });
+    setRecipeList(recipesData);
+  };
+
+ 
+  useEffect(() => {
+    db.execute('CREATE TABLE IF NOT EXISTS recipes (id INTEGER PRIMARY KEY, recipeName TEXT)');
+    db.execute('CREATE TABLE IF NOT EXISTS recipeIngredients (id INTEGER PRIMARY KEY AUTOINCREMENT, recipeId INTEGER, ingredient TEXT, quantity TEXT, unit TEXT)');
+    loadRecipes();
+  }, []);
+
+  
+  useEffect(() => {
+    if (isFocused) {
+      loadRecipes();
+    }
+  }, [isFocused]);
 
   const filteredRecipes = recipeList.filter(recipe =>
     recipe.recipeName.toLowerCase().includes(searchText.toLowerCase())
@@ -110,20 +61,28 @@ function SavedRecips() {
   };
 
   const handleDelete = () => {
-    setRecipeList(prev => prev.filter(recipe => !selectedItems.includes(recipe.id)));
+    selectedItems.forEach(id => {
+      db.execute('DELETE FROM recipes WHERE id = ?', [id]);
+      db.execute('DELETE FROM recipeIngredients WHERE recipeId = ?', [id]);
+    });
+    loadRecipes();
     setDeleteMode(false);
     setSelectedItems([]);
+    setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 1500);
   };
 
   const cancelAction = () => {
     setDeleteMode(false);
     setAddMode(false);
     setSelectedItems([]);
+    
   };
 
   const confirmDelete = () => {
     if (selectedItems.length === 0) {
       setShowAlertDialog(true);
+      
     } else {
       setShowSafetyDialog(true);
     }
@@ -132,6 +91,7 @@ function SavedRecips() {
   const confirmAdd = () => {
     if (selectedItems.length === 0) {
       setShowAlertDialog(true);
+      
     } else {
       setShowSafetyDialog(true);
     }
@@ -157,24 +117,22 @@ function SavedRecips() {
     }
     return parseFloat(amount.replace(',', '.'));
   };
-  
+
   const parseInputAmount = (amount, unit) => {
     const baseUnits = parseInputToBaseUnits(amount, unit);
     return ["KG", "L"].includes(unit)
       ? parseFloat((baseUnits / 1000).toFixed(3))
       : baseUnits;
   };
-  
-  
+
   const addOrUpdateIngredient = (ingredient) => {
     const result = db.execute(
       'SELECT * FROM items WHERE lower(name) = ?',
       [ingredient.ingredient.toLowerCase()]
     );
     const rows = result.rows._array;
-    
+
     if (rows && rows.length > 0) {
-      
       let existingRecord = rows.find(item => {
         if (["G", "KG"].includes(ingredient.unit)) {
           return item.unit === "G" || item.unit === "KG";
@@ -188,16 +146,14 @@ function SavedRecips() {
         let updatedAmount, updatedUnit;
         const isWeight = ["KG", "G"].includes(existingRecord.unit);
         const isVolume = ["L", "ML"].includes(existingRecord.unit);
-        
-        
+
         const existingInBase = (existingRecord.unit === "KG" || existingRecord.unit === "L")
           ? existingRecord.amount * 1000
           : existingRecord.amount;
-        
-        
+
         const newInBase = parseInputToBaseUnits(ingredient.quantity, ingredient.unit);
         const totalBase = existingInBase + newInBase;
-        
+
         if (totalBase >= 1000 && (isWeight || isVolume)) {
           updatedUnit = isWeight ? "KG" : "L";
           updatedAmount = parseFloat((totalBase / 1000).toFixed(3));
@@ -212,7 +168,7 @@ function SavedRecips() {
         return;
       }
     }
-    
+
     let amountInput = parseInputAmount(ingredient.quantity, ingredient.unit);
     db.execute(
       'INSERT INTO items (name, amount, unit) VALUES (?, ?, ?)',
@@ -223,39 +179,52 @@ function SavedRecips() {
   return (
     <View style={style.mainCont}>
       <Searchcont searchText={searchText} setSearchText={setSearchText} />
-      <FlatList
-        data={filteredRecipes}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <RecipsCard
-            recipe={item}
-            deleteMode={deleteMode}
-            addMode={addMode}
-            selectedItems={selectedItems}
-            toggleSelection={toggleSelection}
-          />
-        )}
-        contentContainerStyle={{ alignItems: 'center' }}
-        style={style.flatList}
-      />
-      <OptionBTNs 
-        onAddMode={() => { 
-          setAddMode(true);
-          setDeleteMode(false);
-          setSelectedItems([]); 
-        }}
-        onDeleteMode={() => {
-          setDeleteMode(true);
-          setAddMode(false);
-          setSelectedItems([]);
-        }}
-      />
-      {(deleteMode || addMode) && (
-        <ActionBox 
-          onAction={addMode ? confirmAdd : confirmDelete}
-          onCancel={cancelAction}
-          mode={addMode ? "add" : "delete"}
+      { recipeList.length === 0 ? (
+        <View style={style.noRecipesContainer}>
+          <Text style={style.noRecipesText}>Keine Rezepte vorhanden.</Text>
+          <TouchableOpacity style={style.addReipss} onPress={() => navigation.navigate("Recips")}>
+            <Text style={style.addReipssText}>Rezepte Hinzufügen</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredRecipes}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <RecipsCard
+              recipe={item}
+              deleteMode={deleteMode}
+              addMode={addMode}
+              selectedItems={selectedItems}
+              toggleSelection={toggleSelection}
+            />
+          )}
+          contentContainerStyle={{ alignItems: 'center' }}
+          style={style.flatList}
         />
+      )}
+      { recipeList.length > 0 && (
+        <>
+          <OptionBTNs 
+            onAddMode={() => { 
+              setAddMode(true);
+              setDeleteMode(false);
+              setSelectedItems([]); 
+            }}
+            onDeleteMode={() => {
+              setDeleteMode(true);
+              setAddMode(false);
+              setSelectedItems([]);
+            }}
+          />
+          {(deleteMode || addMode) && (
+            <ActionBox 
+              onAction={addMode ? confirmAdd : confirmDelete}
+              onCancel={cancelAction}
+              mode={addMode ? "add" : "delete"}
+            />
+          )}
+        </>
       )}
       {showSafetyDialog && (
         <SafetyDialog
@@ -286,6 +255,12 @@ function SavedRecips() {
           dialogtext="Sie müssen mindestens 1 Rezept wählen" 
         />
       )}
+
+      {showSuccess && (
+              <View style={style.overlay}>
+                <SuccessAnimation />
+                </View>
+                )}
     </View>
   );
 }
@@ -387,7 +362,6 @@ const style = StyleSheet.create({
     borderRadius: 25,
     overflow: "hidden",
     marginBottom: 15,
-    
   },
   nameCont: {
     marginTop: 5,
@@ -450,7 +424,6 @@ const style = StyleSheet.create({
     borderRadius: 35,
     borderColor: Colors.primarylight,
     borderWidth: 2,
-    
   },
   sepbtn: {
     width: "100%",
@@ -485,7 +458,6 @@ const style = StyleSheet.create({
     borderWidth: 1,
     left: 12,
     top: 7,
-    
   },
   myChecked: {
     textAlign: "center",
@@ -516,7 +488,6 @@ const style = StyleSheet.create({
     borderColor: Colors.primary,
     justifyContent: "center",
     alignItems: "center",
-    
   },
   dondel: {
     backgroundColor: Colors.bblack,
@@ -531,7 +502,42 @@ const style = StyleSheet.create({
     color: Colors.textwhite,
     fontFamily: "monospace",
     fontSize: 25
-  }
+  },
+  noRecipesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  noRecipesText: {
+    fontSize: 20,
+    color: Colors.textwhite,
+    fontFamily: 'monospace'
+  },
+  addReipss:{
+    height: 70,
+    width: 250,
+    backgroundColor: Colors.greencheck,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 25,
+    marginTop: 20,
+    marginBottom: 20
+  },
+  addReipssText: {
+    color: Colors.textwhite,
+    fontSize: 20,
+    fontFamily: "monospace"
+  },
+  overlay: {
+    position: 'absolute',
+    top: -120,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent', 
+    }
 });
 
 export default SavedRecips;
