@@ -4,6 +4,7 @@ import { Picker } from '@react-native-picker/picker';
 import Colors from '../constant/Colos';
 import AlertDialog from '../components/AlertDialog';
 import { open } from 'react-native-quick-sqlite';
+import SuccessAnimationgren from '../components/SuccessAnimationgren';
 
 const db = open({
   name: 'shopping.db',
@@ -16,7 +17,7 @@ function Recips() {
   const [recipeName, setRecipeName] = useState('');
   const [recipeNameConfirmed, setRecipeNameConfirmed] = useState(false);
   const [showAlertDialog, setShowAlertDialog] = useState(false);
-
+  const [showSuccessAnimationg, setShowSuccessAnimationg] = useState(false);
   
   useEffect(() => {
     db.execute('CREATE TABLE IF NOT EXISTS recipes (id TEXT PRIMARY KEY, recipeName TEXT)');
@@ -41,6 +42,9 @@ function Recips() {
     setRecipeName('');
     setRecipeNameConfirmed(false);
     setIngredients([]);
+    setShowSuccessAnimationg(true);
+      setTimeout(() => setShowSuccessAnimationg(false), 2500);
+  
   };
 
   return (
@@ -69,6 +73,11 @@ function Recips() {
           dialogtext="Bitte füllen Sie den Rezeptnamen aus und fügen Sie mindestens eine Zutat hinzu!"
         />
       )}
+      {showSuccessAnimationg && (
+                    <View style={style.overlay}>
+                      <SuccessAnimationgren />
+                      </View>
+                      )}
     </View>
   );
 }
@@ -486,7 +495,17 @@ const style = StyleSheet.create({
     fontSize: 20,
     textAlign: "center",
     color: Colors.whitedarl,
-  }
+  },
+  overlay: {
+    position: 'absolute',
+    top: -120,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent', 
+    }
 });
 
 export default Recips;

@@ -7,6 +7,8 @@ import AlertDialog from '../components/AlertDialog';
 import { open } from 'react-native-quick-sqlite';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import SuccessAnimation from '../components/SuccessAnimation';
+import SuccessAnimationgren from '../components/SuccessAnimationgren';
+
 
 const db = open({
   name: 'shopping.db',
@@ -24,6 +26,7 @@ function SavedRecips() {
   const navigation = useNavigation();
   const isFocused = useIsFocused(); 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccessgreen, setShowSuccessgreen] = useState(false);
 
   const loadRecipes = () => {
     const recipeResults = db.execute('SELECT * FROM recipes');
@@ -69,7 +72,7 @@ function SavedRecips() {
     setDeleteMode(false);
     setSelectedItems([]);
     setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 1500);
+      setTimeout(() => setShowSuccess(false), 2500);
   };
 
   const cancelAction = () => {
@@ -105,6 +108,8 @@ function SavedRecips() {
       });
     });
     cancelAction();
+    setShowSuccessgreen(true);
+      setTimeout(() => setShowSuccessgreen(false), 2500);
   };
 
   const parseInputToBaseUnits = (amount, unit) => {
@@ -259,6 +264,11 @@ function SavedRecips() {
       {showSuccess && (
               <View style={style.overlay}>
                 <SuccessAnimation />
+                </View>
+                )}
+      {showSuccessgreen && (
+              <View style={style.overlay}>
+                <SuccessAnimationgren />
                 </View>
                 )}
     </View>

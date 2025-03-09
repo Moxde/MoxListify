@@ -2,10 +2,10 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import LottieView from 'lottie-react-native';
-import successAnimation from '../assets/Lottie/Successrot.json';
+import successAnimation from '../assets/Lottie/successg.json';
 import Colors from '../constant/Colos';
 
-export default function SuccessAnimation() {
+export default function SuccessAnimationgren() {
   return (
     <View style={styles.container}>
       <LottieView

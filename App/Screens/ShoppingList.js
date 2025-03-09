@@ -74,7 +74,7 @@ function ShoppingList() {
       loadItems();
       cancelDeletion();
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 1500);
+      setTimeout(() => setShowSuccess(false), 2500);
     } catch (error) {
       Alert.alert('Fehler beim Löschen');
     }
