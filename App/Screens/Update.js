@@ -82,7 +82,7 @@ function Update() {
   return (
     <ScrollView style={styles.mainCont}>
       <Text style={styles.versionText}>Aktuelle Version: {appVersion}</Text>
-      {/* Wenn nach Updates gesucht wurde, wird der Update-Status angezeigt */}
+
       {hasSearchedForUpdate && (
         <View style={styles.versioncont}>
           {appVersion !== latestVersion ? (

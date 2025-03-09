@@ -77,7 +77,6 @@ function Recips() {
         setRecipeNameConfirmed={setRecipeNameConfirmed}
       />
       <TouchableOpacity style={style.addRecips} onPress={handleAddRecipe}>
-        {' '}
         {/* Rezept hinzufügen */}
         <Text style={style.addRecipsText}>Rezept hinzufügen</Text>
       </TouchableOpacity>
@@ -147,7 +146,7 @@ function RecipesAndIngredientDisplay({
           style.reciepDisplayCont,
           recipeNameConfirmed && {backgroundColor: Colors.transpertblc},
         ]}>
-        <TextInput // Rezeptnamen Eingabe
+        <TextInput
           ref={textInputRef}
           style={style.reciepName}
           placeholder="Name des Rezepts eintragen:"
@@ -157,7 +156,7 @@ function RecipesAndIngredientDisplay({
           onSubmitEditing={handleSubmit}
           editable={active}
         />
-        {recipeNameConfirmed ? ( // Rezeptnamen bestätigt
+        {recipeNameConfirmed ? (
           <TouchableOpacity style={style.btncont} onPress={handleClear}>
             <Image
               source={require('../assets/img/x1btn.png')}
@@ -166,8 +165,6 @@ function RecipesAndIngredientDisplay({
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={style.btncontg} onPress={handleActivate}>
-            {' '}
-            {/* Rezeptnamen bestätigen */}
             <Image
               source={require('../assets/img/addbtn.png')}
               style={style.btn}
@@ -176,10 +173,8 @@ function RecipesAndIngredientDisplay({
         )}
       </View>
       <View style={style.ingredienDisplayCont}>
-        {' '}
-        {/* Zutaten anzeigen und bearbeiten */}
         <Text style={style.ingredienText}>Zutaten:</Text>
-        <FlatList // Zutatenliste dynamisch anzeigen und bearbeiten
+        <FlatList
           data={ingredients}
           keyExtractor={item => item.id}
           renderItem={({item}) => (
@@ -188,7 +183,7 @@ function RecipesAndIngredientDisplay({
               <Text style={style.ingredientItemText}>
                 {item.quantity} {item.unit}
               </Text>
-              <TouchableOpacity // Zutaten löschen
+              <TouchableOpacity
                 style={style.ingredientItemBtnCont}
                 onPress={() =>
                   setIngredients(prev => prev.filter(i => i.id !== item.id))
@@ -205,8 +200,6 @@ function RecipesAndIngredientDisplay({
         <TouchableOpacity
           style={style.ingredienAdd}
           onPress={() => setShowItemBox(true)}>
-          {' '}
-          {/* Zutaten hinzufügen */}
           <Image
             source={require('../assets/img/addbtn.png')}
             style={style.ingredienAddbtn}
@@ -246,12 +239,10 @@ function Itembox({handleClose, onAddIngredient}) {
     <View style={style.itembox}>
       <View style={style.itemboxcont}>
         <TouchableOpacity style={style.closeContBtn} onPress={handleClose}>
-          {' '}
-          {/* Schließen Button   */}
           <Text style={style.closeContText}>X</Text>
         </TouchableOpacity>
         <View style={style.itemboxcontInput}>
-          <TextInput // Zutatennamen Eingabe
+          <TextInput
             style={style.itemboxname}
             placeholder="Zutat eintragen:"
             placeholderTextColor={Colors.whitedarl}
@@ -260,7 +251,7 @@ function Itembox({handleClose, onAddIngredient}) {
           />
         </View>
         <View style={style.itemboxcontInputrow}>
-          <TextInput // Mengenangabe
+          <TextInput
             style={style.itemboxnamed}
             placeholder="Menge"
             placeholderTextColor={Colors.whitedarl}
@@ -274,7 +265,7 @@ function Itembox({handleClose, onAddIngredient}) {
             onSubmitEditing={handleAdd}
           />
           <View style={style.inputUnitContainer}>
-            <Picker // Einheiten-Auswahl für Menge
+            <Picker
               selectedValue={selectedUnit}
               style={style.inputUnit}
               onValueChange={itemValue => setSelectedUnit(itemValue)}>
@@ -290,11 +281,9 @@ function Itembox({handleClose, onAddIngredient}) {
         </View>
         <View style={style.seph} />
         <TouchableOpacity style={style.itemboxaddbtn} onPress={handleAdd}>
-          {' '}
-          {/* Hinzufügen Button von Zutaten  */}
           <Text style={style.itemboxaddtext}>Hinzufügen</Text>
         </TouchableOpacity>
-        {showAlertDialog && ( // Dialog für leere Eingaben
+        {showAlertDialog && (
           <AlertDialog
             yesBtn={() => setShowAlertDialog(false)}
             dialogtext="Bitte füllen Sie alle Felder aus!"

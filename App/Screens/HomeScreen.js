@@ -10,8 +10,8 @@ import MainLogo from '../components/MainLogo';
 function HomeScreen({navigation}) {
   return (
     <SafeAreaView style={style.cont}>
-      <AppBar navigation={navigation} /> {/* AppBar-Komponente */}
-      <MainLogo /> {/* Logo-Komponente */}
+      <AppBar navigation={navigation} />
+      <MainLogo />
       <View style={style.options}>
         <HomeOptions
           text="Rezept Hinzufügen"

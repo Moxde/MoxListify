@@ -115,19 +115,15 @@ function ShoppingList() {
 
   return (
     <View style={styles.mainCont}>
-      <Searchcont searchText={searchText} setSearchText={setSearchText} />{' '}
-      {/* Suchfeld */}
+      <Searchcont searchText={searchText} setSearchText={setSearchText} />
+
       <View style={styles.list}>
-        {' '}
-        {/* wenn Liste leer ist  */}
         {database.length === 0 ? (
           <View style={styles.emptyListContainer}>
             <Text style={styles.emptyListText}>Einkaufsliste ist leer.</Text>
           </View>
         ) : (
           <ScrollView keyboardShouldPersistTaps="handled">
-            {' '}
-            {/* zeigt die Liste dynmaisch an */}
             <CardList
               database={filteredList}
               checkOn={checkOn || editMode}
@@ -138,7 +134,7 @@ function ShoppingList() {
           </ScrollView>
         )}
       </View>
-      {/* Optionlist zeigt die Buttons zum löschen / bearbeiten / hinzufügen */}
+
       <OptionList
         setDatabase={setDatabase}
         activateDeletion={activateDeletion}
@@ -153,7 +149,7 @@ function ShoppingList() {
         setCheckOn={setCheckOn}
         loadItems={loadItems}
       />
-      {/* SafetyDialog zeigt die Sicherheitsfrage */}
+
       {showSafetyDialog && (
         <SafetyDialog
           yesBtnText="Löschen"
@@ -166,7 +162,7 @@ function ShoppingList() {
           stylyesbtn={{backgroundColor: Colors.reddelet}}
         />
       )}
-      {/* AlertDialog zeigt die Fehlermeldung */}
+
       {showAlertDialog && (
         <AlertDialog
           yesBtn={() => {
@@ -175,7 +171,7 @@ function ShoppingList() {
           dialogtext="Sie müssen mindestens 1 Artikel wählen"
         />
       )}
-      {/* SuccessAnimation zeigt die Erfolgsmeldung */}
+
       {showSuccess && (
         <View style={styles.overlay}>
           <SuccessAnimation />
@@ -330,24 +326,20 @@ function OptionList({
     <View style={styles.optionList}>
       <View style={styles.btns}>
         <TouchableOpacity onPress={() => setIsAdding(true)}>
-          {' '}
-          {/* Button zum Hinzufügen */}
           <Image
             source={require('../assets/img/addbtn.png')}
             style={styles.addbtn}
           />
         </TouchableOpacity>
-        <View style={styles.seph} /> {/* Separator */}
+        <View style={styles.seph} />
         <TouchableOpacity onPress={activateDeletion}>
-          {' '}
-          {/* Button zum Löschen */}
           <Image
             source={require('../assets/img/deletbtn.png')}
             style={styles.addbtn}
           />
         </TouchableOpacity>
-        <View style={styles.seph} /> {/* Separator */}
-        {/* Button zum Bearbeiten */}
+        <View style={styles.seph} />
+
         <TouchableOpacity
           onPress={() => {
             if (editMode) {
@@ -363,8 +355,8 @@ function OptionList({
           />
         </TouchableOpacity>
       </View>
-      <View style={styles.sepv} /> {/* Separator */}
-      {/* Löschen-Button */}
+      <View style={styles.sepv} />
+
       {deleteOn && (
         <View style={styles.mainDel}>
           <TouchableOpacity
@@ -377,7 +369,7 @@ function OptionList({
           </TouchableOpacity>
         </View>
       )}
-      {/* Hinzufügen -Button */}
+
       {isAdding && (
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -429,7 +421,7 @@ function OptionList({
           </View>
         </View>
       )}
-      {/* AlertDialog zeigt die Fehlermeldung */}
+
       {showAlertDialog && (
         <AlertDialog
           yesBtn={() => setShowAlertDialog(false)}
@@ -446,7 +438,6 @@ function CardList({database, checkOn, toggleChecked, checkedItems, deleteOn}) {
   const renderedItems = useMemo(() => {
     return database.map(item => (
       <View key={item.id} style={styles.cardCont}>
-        {/* Checkbox */}
         {checkOn && (
           <MyBoxCheck
             id={item.id}
@@ -455,18 +446,14 @@ function CardList({database, checkOn, toggleChecked, checkedItems, deleteOn}) {
             deleteOn={deleteOn}
           />
         )}
-        <Text style={styles.textCard}>{item.name}</Text> {/* Artikel-Name */}
+        <Text style={styles.textCard}>{item.name}</Text>
         <Text style={styles.amount}>
-          {' '}
-          {/* Artikel-Menge */}
-          {item.amount} {item.unit} {/* Artikel-Einheit */}
+          {item.amount} {item.unit}
         </Text>
       </View>
     ));
   }, [database, checkOn, checkedItems, deleteOn]);
-  {
-    /* Liste der Artikel */
-  }
+
   return <View>{renderedItems}</View>;
 }
 

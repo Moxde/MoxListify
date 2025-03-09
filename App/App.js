@@ -14,11 +14,7 @@ const Stack = createStackNavigator(); // Stack-Navigator erstellen für Navigati
 export default function App() {
   return (
     <NavigationContainer>
-      {' '}
-      {/* Navigation-Container erstellen */}
       <Stack.Navigator initialRouteName="Home">
-        {' '}
-        {/* Stack-Navigator mit  Initialisierung für Home-Screen */}
         <Stack.Screen
           name="Home"
           component={HomeScreen}
