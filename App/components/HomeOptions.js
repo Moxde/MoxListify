@@ -1,15 +1,20 @@
-import React, { useRef } from 'react';
-import { TouchableOpacity, StyleSheet, Text, Animated, Dimensions } from 'react-native';
+import React, {useRef} from 'react';
+import {
+  TouchableOpacity,
+  StyleSheet,
+  Text,
+  Animated,
+  Dimensions,
+} from 'react-native';
 import Colors from '../constant/Colos';
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
-function HomeOptions({ text, onPress,textStyle }) {
+// HomeOptions Component für die Startseite der App
+function HomeOptions({text, onPress, textStyle}) {
+  const scaleValue = useRef(new Animated.Value(1)).current; // Animate Value für die Skalierung
+  const bgColor = useRef(new Animated.Value(0)).current; // Animate Value für die Hintergrundfarbe
 
-  const scaleValue = useRef(new Animated.Value(1)).current;
-  const bgColor = useRef(new Animated.Value(0)).current;
-
- 
   const handlePressIn = () => {
     Animated.spring(scaleValue, {
       toValue: 0.95,
@@ -26,28 +31,25 @@ function HomeOptions({ text, onPress,textStyle }) {
     }).start();
   };
 
-  
   const interpolatedColor = bgColor.interpolate({
     inputRange: [0, 1],
-    outputRange: [Colors.primary, Colors.primarydark] 
+    outputRange: [Colors.primary, Colors.primarydark],
   });
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.container,
-        { 
-          transform: [{ scale: scaleValue }],
-          backgroundColor: interpolatedColor 
-        }
-      ]}
-    >
-      <TouchableOpacity 
+        {
+          transform: [{scale: scaleValue}],
+          backgroundColor: interpolatedColor,
+        },
+      ]}>
+      <TouchableOpacity
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         onPress={onPress}
-        activeOpacity={0.9}
-      >
+        activeOpacity={0.9}>
         <Text style={[styles.text, textStyle]}>{text}</Text>
       </TouchableOpacity>
     </Animated.View>
@@ -64,7 +66,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.textwhite,
     borderRadius: 30,
-    overflow: 'hidden', 
+    overflow: 'hidden',
   },
   text: {
     color: Colors.textwhite,
@@ -72,7 +74,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'monospace',
     padding: 15,
-  }
+  },
 });
 
 export default HomeOptions;

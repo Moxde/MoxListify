@@ -1,12 +1,19 @@
-import React, { useState, useRef } from 'react';
-import { Animated, TouchableOpacity, StyleSheet, Image, TextInput } from 'react-native';
+import React, {useState, useRef} from 'react';
+import {
+  Animated,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  TextInput,
+} from 'react-native';
 import Colors from '../constant/Colos';
 
-function Searchcont({ searchText, setSearchText }) {
-  const [active, setActive] = useState(false);
-  const containerWidth = useRef(new Animated.Value(66)).current;
-  const inputOpacity = useRef(new Animated.Value(0)).current;
-
+// suche Leiste für Rezepte und Einkaufsliste
+function Searchcont({searchText, setSearchText}) {
+  const [active, setActive] = useState(false); // state für aktive Suche
+  const containerWidth = useRef(new Animated.Value(66)).current; // Animation für Breite der Suche
+  const inputOpacity = useRef(new Animated.Value(0)).current; // Animation für Opazität der Suche
+  // Funktion für Suche ein-/ausblenden
   const toggleInput = () => {
     if (!active) {
       setActive(true);
@@ -41,8 +48,8 @@ function Searchcont({ searchText, setSearchText }) {
   };
 
   return (
-    <Animated.View style={[styles.searchC, { width: containerWidth }]}>
-      <Animated.View style={{ flex: 1, opacity: inputOpacity }}>
+    <Animated.View style={[styles.searchC, {width: containerWidth}]}>
+      <Animated.View style={{flex: 1, opacity: inputOpacity}}>
         <TextInput
           placeholder="Suche..."
           placeholderTextColor={Colors.textwhite}
@@ -53,7 +60,10 @@ function Searchcont({ searchText, setSearchText }) {
         />
       </Animated.View>
       <TouchableOpacity onPress={toggleInput}>
-        <Image source={require('../assets/img/search.png')} style={styles.searchlogo} />
+        <Image
+          source={require('../assets/img/search.png')}
+          style={styles.searchlogo}
+        />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -61,6 +71,7 @@ function Searchcont({ searchText, setSearchText }) {
 
 const styles = StyleSheet.create({
   searchC: {
+    // Maincontainer für Suche
     position: 'absolute',
     borderColor: Colors.whitedarl,
     borderWidth: 3,
@@ -72,19 +83,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 15,
     alignItems: 'center',
-    
   },
   searchlogo: {
+    // Styling für Suche-Logo
     height: 30,
     width: 30,
   },
   searchin: {
+    // Styling für Suchfeld
     fontFamily: 'monospace',
     fontSize: 16,
     fontWeight: 'bold',
     color: Colors.textwhite,
     padding: 10,
-    letterSpacing:4
+    letterSpacing: 4,
   },
 });
 

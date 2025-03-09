@@ -1,13 +1,14 @@
 import React from 'react';
-import { View, StyleSheet, Image, Dimensions } from 'react-native';
+import {View, StyleSheet, Image, Dimensions} from 'react-native';
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
+// Hauptlogo der App für die Startseite
 function MainLogo() {
   return (
     <View>
-      <Image 
-        source={require("../assets/img/mainLogo.png")} 
+      <Image
+        source={require('../assets/img/mainLogo.png')}
         style={styles.logo}
         accessible={true}
         accessibilityLabel="App Logo"
@@ -24,8 +25,8 @@ const styles = StyleSheet.create({
     maxWidth: 401,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginVertical: 20 // Ersetzt marginTop
-  }
+    marginVertical: 20,
+  },
 });
 
 export default MainLogo;
