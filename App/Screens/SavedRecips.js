@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, Text, TouchableOpacity, Image } from 'react-native';
+import { View, StyleSheet, FlatList, Text, TouchableOpacity, Image, ScrollView, Modal } from 'react-native';
 import Colors from '../constant/Colos';
 import Searchcont from '../components/Searchcont';
 import SafetyDialog from '../components/SafetyDialog';
@@ -8,7 +8,6 @@ import { open } from 'react-native-quick-sqlite';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import SuccessAnimation from '../components/SuccessAnimation';
 import SuccessAnimationgren from '../components/SuccessAnimationgren';
-
 
 const db = open({
   name: 'shopping.db',
@@ -27,6 +26,9 @@ function SavedRecips() {
   const isFocused = useIsFocused(); 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showSuccessgreen, setShowSuccessgreen] = useState(false);
+  
+  // Neuer State für das erweiterte Rezept
+  const [expandedRecipe, setExpandedRecipe] = useState(null);
 
   const loadRecipes = () => {
     const recipeResults = db.execute('SELECT * FROM recipes');
@@ -39,14 +41,12 @@ function SavedRecips() {
     setRecipeList(recipesData);
   };
 
- 
   useEffect(() => {
     db.execute('CREATE TABLE IF NOT EXISTS recipes (id INTEGER PRIMARY KEY, recipeName TEXT)');
     db.execute('CREATE TABLE IF NOT EXISTS recipeIngredients (id INTEGER PRIMARY KEY AUTOINCREMENT, recipeId INTEGER, ingredient TEXT, quantity TEXT, unit TEXT)');
     loadRecipes();
   }, []);
 
-  
   useEffect(() => {
     if (isFocused) {
       loadRecipes();
@@ -72,20 +72,18 @@ function SavedRecips() {
     setDeleteMode(false);
     setSelectedItems([]);
     setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 2500);
+    setTimeout(() => setShowSuccess(false), 2500);
   };
 
   const cancelAction = () => {
     setDeleteMode(false);
     setAddMode(false);
     setSelectedItems([]);
-    
   };
 
   const confirmDelete = () => {
     if (selectedItems.length === 0) {
       setShowAlertDialog(true);
-      
     } else {
       setShowSafetyDialog(true);
     }
@@ -94,7 +92,6 @@ function SavedRecips() {
   const confirmAdd = () => {
     if (selectedItems.length === 0) {
       setShowAlertDialog(true);
-      
     } else {
       setShowSafetyDialog(true);
     }
@@ -109,7 +106,7 @@ function SavedRecips() {
     });
     cancelAction();
     setShowSuccessgreen(true);
-      setTimeout(() => setShowSuccessgreen(false), 2500);
+    setTimeout(() => setShowSuccessgreen(false), 2500);
   };
 
   const parseInputToBaseUnits = (amount, unit) => {
@@ -202,6 +199,7 @@ function SavedRecips() {
               addMode={addMode}
               selectedItems={selectedItems}
               toggleSelection={toggleSelection}
+              onExpand={setExpandedRecipe}  // Übergibt die Funktion zum Öffnen des Modals
             />
           )}
           contentContainerStyle={{ alignItems: 'center' }}
@@ -260,22 +258,48 @@ function SavedRecips() {
           dialogtext="Sie müssen mindestens 1 Rezept wählen" 
         />
       )}
-
       {showSuccess && (
-              <View style={style.overlay}>
-                <SuccessAnimation />
-                </View>
-                )}
+        <View style={style.overlay}>
+          <SuccessAnimation />
+        </View>
+      )}
       {showSuccessgreen && (
-              <View style={style.overlay}>
-                <SuccessAnimationgren />
-                </View>
-                )}
+        <View style={style.overlay}>
+          <SuccessAnimationgren />
+        </View>
+      )}
+      
+      {/* Vollbild-Modal für das erweiterte Rezept */}
+      {expandedRecipe && (
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={true}
+          onRequestClose={() => setExpandedRecipe(null)}
+        >
+          <View style={style.fullScreenContainer}>
+            <TouchableOpacity style={style.closeButton} onPress={() => setExpandedRecipe(null)}>
+              <Text style={style.closeButtonText}>X</Text>
+            </TouchableOpacity>
+            <ScrollView contentContainerStyle={style.scrollContainer}>
+              <Text style={style.fullRecipeTitle}>{expandedRecipe.recipeName}</Text>
+              <View style={style.fullIngredients}>
+                <Text style={style.ingredientText}>Zutaten:</Text>
+                {expandedRecipe.ingredients.map((item, index) => (
+                  <Text key={index} style={style.fullIngredientItem}>
+                    {item.ingredient} ({item.quantity} {item.unit})
+                  </Text>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }
 
-function RecipsCard({ recipe, deleteMode, addMode, selectedItems, toggleSelection }) {
+function RecipsCard({ recipe, deleteMode, addMode, selectedItems, toggleSelection, onExpand }) {
   return (
     <View style={style.recipCont}>
       <View style={style.nameCont}>
@@ -303,7 +327,7 @@ function RecipsCard({ recipe, deleteMode, addMode, selectedItems, toggleSelectio
           )}
         />
       </View>
-      <TouchableOpacity style={style.seeMoreButton}>
+      <TouchableOpacity style={style.seeMoreButton} onPress={() => onExpand(recipe)}>
         <Text style={style.seeMoreText}>See More</Text>
       </TouchableOpacity>
     </View>
@@ -547,7 +571,49 @@ const style = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent', 
-    }
+  },
+ 
+  fullScreenContainer: {
+    height: '83%',
+    width: '100%',
+    backgroundColor: Colors.primary,
+    borderRadius: 25,
+    top: '15%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: Colors.reddark,
+    padding: 10,
+    borderRadius: 20,
+  },
+  closeButtonText: {
+    fontSize: 18,
+    color: Colors.textwhite,
+    fontWeight: 'bold',
+  },
+  scrollContainer: {
+    padding: 20,
+    paddingTop: 60,
+  },
+  fullRecipeTitle: {
+    fontSize: 26,
+    color: Colors.whitedarl,
+    fontFamily: "monospace",
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  fullIngredients: {
+    marginTop: 10,
+  },
+  fullIngredientItem: {
+    fontSize: 20,
+    color: Colors.textwhite,
+    marginVertical: 5,
+    fontFamily: "monospace",
+  },
 });
 
 export default SavedRecips;
